@@ -33,6 +33,18 @@ Ideas collected from other café websites. These are ideas, not decisions yet.
   ```
 - **Note:** "minh" should have its own colors, not copy Cộng's colors directly. Only borrow the vibe.
 
+## 3. Minimal, image-heavy homepage (from % Arabica) — the user likes this one
+
+- **Source:** https://arabica.com/en/
+- **What they do:** almost no descriptive text on the page. The homepage is mostly large photos, with a simple nav (Philosophy, Locations, Shop, Films, Contact). Neutral color palette (white/black/gray), stylized logo.
+- **Applied to "minh":** a few large, high-quality photos (drinks, counter, storefront) instead of paragraphs of text. Let the photos and whitespace (deliberate empty space around content) carry the mood, keep nav and copy short.
+- **Important: good source photos are not enough on their own.** For the page to actually look good and load fast on the web:
+  1. **Compress the images (image optimization).** Camera/phone photos are often several MB each; uploaded as-is they make the page slow. Convert/compress to a lighter format like `.webp` before putting them in `public/`. A free tool: squoosh.app.
+  2. **Serve different sizes for different screens (responsive images).** A phone doesn't need the same huge image as a desktop. HTML has `srcset`/`<picture>` for this — to cover later when building real pages.
+  3. **Keep a consistent color tone across photos** (color grading) so they feel like one set, not a mismatched collection.
+  4. **Use CSS layout on purpose** (full-bleed images, consistent spacing) — good photos can still look broken without the right layout/CSS around them.
+- **When to build:** photo selection/shooting can start anytime; compression and responsive `<img>`/`srcset` markup fit once `public/` HTML/CSS work begins.
+
 ## Other reference websites
 
 - Pikolo Espresso: https://pikoloespresso.com (single-page home layout)
@@ -40,5 +52,4 @@ Ideas collected from other café websites. These are ideas, not decisions yet.
 - Blue Bottle: https://bluebottlecoffee.com (minimal item cards)
 - Second Cup: https://secondcup.com ("Order now" button, menu by group)
 - Philz Coffee: https://www.philzcoffee.com (option picker, Add to cart)
-- % Arabica: https://arabica.com/en/ (minimalist design)
 - Cộng Cà Phê: https://congcaphe.com (bilingual Vietnamese/English)
