@@ -53,6 +53,10 @@ Hosting: **Render**.
 - Rye is decorative and hard to read small: logo and big titles only, never body text. Keep the logo at least ~28px tall.
 - The logo is per-shop branding of the minh deployment; Brewshift code stays generic (later the logo path comes from `config/shop.json`).
 
+## Menu (minh)
+
+- Menu (2026-10-01): 13 Vietnamese coffee drinks, prices in CAD (5–9). Full list in `docs/menu.md`; later becomes `data/menu.json`.
+
 ## Keeping this file up to date
 
 - Whenever an important decision is made in a chat (a requirement, folder structure, tech stack, or how the user wants to work), update this file right away.
