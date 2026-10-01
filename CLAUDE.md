@@ -18,7 +18,7 @@ It is a **generic café management product**: online pickup ordering plus a staf
 - The user is a **complete beginner**. Reply in **Vietnamese**, go slowly, explain simply, and define every technical term.
 - Teach rather than just do: explain what each step does and why.
 - The user is on a **Mac** (zsh terminal).
-- Claude **may run `git commit` and `git push`** on the user's behalf, but must always show what will be committed/pushed and get a quick confirmation first (the commit history is graded, so the user wants to approve each one, not type them by hand). **Exception: `CLAUDE.md` changes** — Claude commits and pushes those on its own, no confirmation needed.
+- Claude **may run `git commit` and `git push`** on the user's behalf, but must always show what will be committed/pushed and get a quick confirmation first (the commit history is graded, so the user wants to approve each one, not type them by hand). **Exception: `CLAUDE.md` and anything under `docs/`** — Claude commits and pushes those on its own, no confirmation needed. Code/app files (once they exist) still need confirmation.
 - Commit messages use prefixes: `docs:`, `chore:`, `feat:` (e.g. `docs: add CLAUDE.md`).
 
 ## Key requirements
@@ -56,7 +56,7 @@ Hosting: **Render**.
 `docs/project-journal.md` is a graded self-reflection document (it feeds the final report, including the AI collaboration log), so it must stay in the user's own voice — Claude does not write it end to end.
 
 - After work happens in a session, Claude fills in only the **factual/technical** parts of the current day's entry: `Done`, `Commits`, `AI used`, and the first three columns of new `AI collaboration log` rows (`Date`, `What I asked`, `What the AI gave me`).
-- Claude leaves `Learned` and the AI log's last column ("what I kept, changed or rejected, and why") blank (`_(fill in yourself)_`) for the user to write themselves — those are the parts meant to show the user's own understanding.
+- Claude leaves `Learned` and the AI log's last column ("what I kept, changed or rejected, and why") blank (`_(fill in yourself)_`) for the user to write themselves — those are the parts meant to show the user's own understanding. The user fills these with just one short line each time, not a long write-up.
 - Keep the whole journal in **one-liner style** per the template in the file: each field is a single line, semicolon-separated for multiple items, so 31 days of entries don't balloon.
 - Like `CLAUDE.md`, Claude commits and pushes these factual journal updates itself, no confirmation needed.
 
