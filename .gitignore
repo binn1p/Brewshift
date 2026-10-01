@@ -1,0 +1,8 @@
+# Thư viện Node (rất nặng, tải lại được)
+node_modules/
+
+# File chứa mật khẩu, khoá bí mật: không bao giờ đưa lên
+.env
+
+# File rác của máy Mac
+.DS_Store
