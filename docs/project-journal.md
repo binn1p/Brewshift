@@ -12,10 +12,11 @@ This journal records, day by day, what was built, what was learned, and what got
 ## How to use this file
 
 1. At the end of each work day, copy the **Daily entry template** below and paste it at the top of the **Entries** section (newest first).
-2. Fill it in in 5 minutes. Short bullet points are fine. Write what is true, including what did not work.
-3. If you used AI that day in a way that mattered (it wrote code you kept, explained a concept, or fixed an error), also add a row to the **AI collaboration log** at the bottom.
-4. On the last day of each week, fill in the **Weekly summary** for that week.
-5. Commit the journal with the rest of the day's work, for example:
+2. Keep every field to **one line** — one-liners, semicolon-separated if there are several items. This keeps the journal from ballooning over 31 days.
+3. Fill in `Learned` yourself, in your own words — Claude will fill in the factual/technical fields (`Done`, `Commits`, `AI used`) but leaves this one for you.
+4. If you used AI that day in a way that mattered (it wrote code you kept, explained a concept, or fixed an error), also add a row to the **AI collaboration log** at the bottom — one-liners there too, except the last column (`what I kept/changed/rejected and why`), which stays yours to write.
+5. On the last day of each week, fill in the **Weekly summary** for that week.
+6. Commit the journal with the rest of the day's work, for example:
    `git commit -m "docs: journal entry for Oct 2"`
 
 ---
@@ -23,28 +24,15 @@ This journal records, day by day, what was built, what was learned, and what got
 ## Daily entry template
 
 ```markdown
-### Day N — <Weekday>, <Month> <Day>, 2026
+### Day N — <Weekday>, <Month> <Day>, 2026 (~X h)
 
-**Time spent:** ~X h
-**Goal for today:** <one sentence>
-
-**Done**
-- ...
-
-**Learned**
-- <concept>: <one-line explanation in my own words>
-
-**Problems and how I solved them**
-- Problem: ...
-  Fix: ...
-
-**Commits today**
-- `<hash>` <message>
-
-**AI used today:** yes / no (if yes, see AI log entry #N)
-
-**Next step**
-- ...
+- **Goal:** <one sentence>
+- **Done:** <item>; <item>; <item>
+- **Learned:** <one-liner>; <one-liner>
+- **Problem:** <issue> → <fix>
+- **Commits:** `<hash>` <message>; `<hash>` <message>
+- **AI used:** yes/no — <one-line what for> (log #N)
+- **Next:** <one sentence>
 ```
 
 ---
@@ -62,54 +50,15 @@ This journal records, day by day, what was built, what was learned, and what got
 
 ## Entries
 
-### Day 1 — Thursday, October 1, 2026
+### Day 1 — Thursday, October 1, 2026 (~1 h)
 
-**Time spent:** ~1 h
-**Goal for today:** Decide the requirements and set up Git and GitHub.
-
-**Done**
-- Read the course brief, the project scope, and my own proposal and pitch.
-- Decided the main requirements (see `docs/requirements.md`):
-  - The app is in English first. Vietnamese for the owner side and French come later.
-  - The product is called **Brewshift**. The first café that uses it, and the one I demo, is called **minh**.
-  - Customers order without an account: name and phone number only.
-  - Staff register themselves, the owner approves them, and they clock in and out with a personal 6-digit PIN on an iPad at the counter.
-  - Instead of a chart, the owner can export all orders and clock-ins as a CSV file.
-  - After ordering, the customer sees a confirmation page with an order code and a live status.
-- Decided the architecture: client-server. Front end in `public/`, Express server in `src/`, data as JSON files in `data/`, shop details in a config file, hosted on Render at the end.
-- Configured Git on my Mac (`user.name`, `user.email`, default branch `main`).
-- Created the public repository `binn1p/Brewshift` on GitHub and cloned it with VS Code.
-- Made my first two commits: `README.md` and `.gitignore`.
-- Added `CLAUDE.md` (AI assistant context file) to the repo, and set the rule for how/when Claude may commit and push on my behalf.
-- Picked a first color palette for "minh" branding and saved it to `docs/design.md`.
-- Wrote `docs/design-ideas.md`: design inspiration notes (Myriade-style loading screen, Cộng Cà Phê retro vibe/fonts, % Arabica minimal image-heavy homepage, other reference sites), in English.
-
-**Learned**
-- **Git** saves snapshots of my project (commits). **GitHub** keeps a copy online so others can see it.
-- The cycle of a change: edit a file → `git add` (choose what goes in) → `git commit` (save locally with a message) → `git push` (send to GitHub).
-- `.gitignore` lists files Git must never upload, like `node_modules/` (heavy libraries) and `.env` (secrets).
-- **Client-server:** the browser (client) shows pages and sends requests; the server checks them, does the work, and saves data. The client should never be trusted with prices or times.
-- **Product vs deployment:** Brewshift is the generic product. Each café gets its own copy of the app, and its name, hours and colours live in a config file instead of in the code.
-
-**Problems and how I solved them**
-- Problem: `git push` failed with `403 Permission to binn1p/Brewshift.git denied to binn1p`. The commit itself had worked; only the upload was blocked.
-  Fix: my Mac had an old saved GitHub login without write access. I removed it with `git credential reject`, then pushed with the **Sync** button in VS Code, which signed me in again.
-
-**Commits today**
-- `e6fd504` docs: add README
-- `ad09dc2` chore: add .gitignore
-- `f461f42` docs: add project journal and requirements spec
-- `bf7bef5` docs: fill in day 1 commits
-- `b9b5889` docs: add CLAUDE.md
-- `3c86e3d` docs: let Claude auto-commit CLAUDE.md changes
-- `6cd0e9a` docs: add color palette for minh branding
-- `0d55e17` docs: translate design ideas to English
-- `70f33ac` docs: add % Arabica minimal image-heavy idea
-
-**AI used today:** yes (see AI log entries #1–#5)
-
-**Next step**
-- Learn what HTML is and write the first page: the **minh** shop page with its name, opening hours and 3 to 5 menu items with prices.
+- **Goal:** Decide the requirements and set up Git and GitHub.
+- **Done:** Read course brief/proposal; decided requirements (see `docs/requirements-spec.md` — English UI first, no customer accounts, PIN clock-in, CSV export instead of a chart, order code + live status); decided client-server architecture (`public/`, `src/`, `data/`, config file, hosted on Render); set up Git + GitHub repo `binn1p/Brewshift`; added `CLAUDE.md` and its Claude commit/push rules; wrote `docs/design.md` (minh color palette) and `docs/design-ideas.md` (Myriade loading screen, Cộng Cà Phê vibe/fonts, % Arabica minimal layout, reference sites).
+- **Learned:** _(fill in yourself — e.g. git/GitHub basics, client-server, product vs. deployment config — see commit history for what was covered)_
+- **Problem:** `git push` failed with 403 (stale saved GitHub login) → cleared it with `git credential reject`, re-signed in via VS Code Sync.
+- **Commits:** `e6fd504` docs: add README; `ad09dc2` chore: add .gitignore; `f461f42` docs: add project journal and requirements spec; `bf7bef5` docs: fill in day 1 commits; `b9b5889` docs: add CLAUDE.md; `3c86e3d` docs: let Claude auto-commit CLAUDE.md changes; `6cd0e9a` docs: add color palette for minh branding; `0d55e17` docs: translate design ideas to English; `70f33ac` docs: add % Arabica minimal image-heavy idea
+- **AI used:** yes — requirements planning, git 403 fix, design palette/ideas docs (log #1–#5)
+- **Next:** Learn HTML and write the first page: the **minh** shop page with name, hours, and 3–5 menu items with prices.
 
 ---
 
@@ -127,12 +76,12 @@ This journal records, day by day, what was built, what was learned, and what got
 
 ## AI collaboration log
 
-The final report must include 3 to 5 examples of how AI was used. Record them here as they happen, so nothing has to be remembered later. For each one, the important part is the last two columns: what I changed or checked myself, and why.
+The final report must include 3 to 5 examples of how AI was used. Record them here as they happen, so nothing has to be remembered later. Keep each cell to one line; the last column (what I changed or checked myself, and why) is the important one and stays in my own words.
 
 | # | Date | What I asked | What the AI gave me | What I kept, changed or rejected, and why |
 |---|---|---|---|---|
-| 1 | Oct 1 | Help turn my proposal and the course brief into a list of requirements and a 4-week plan. | A requirements summary, questions to decide, and a weekly plan. | I made the decisions myself (single café "minh", no customer accounts, PIN clock-in, CSV export instead of a chart). I dropped the multi-shop design from my original proposal, because the course only needs one deployed café. |
-| 2 | Oct 1 | My `git push` failed with error 403. | An explanation of the error and the steps to clear the old saved login. | I ran the commands, understood that the commit had succeeded and only the push failed, and fixed it through VS Code. |
-| 3 | Oct 1 | Save a color palette (screenshot of 4 swatches) for later design use. | Created `docs/design.md` with the hex/RGB values, suggested usage per color, and a CSS custom-properties example. | |
-| 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Translated the full file (loading screen idea, font/vibe idea, reference site list) to English, keeping the same content. | |
-| 5 | Oct 1 | Asked whether just taking high-quality photos is enough for a % Arabica-style minimal homepage; also asked to add that idea to the design doc. | Fetched arabica.com to check, explained that compression, responsive images, and consistent color grading also matter, and added a "% Arabica" section to `docs/design-ideas.md`. | |
+| 1 | Oct 1 | Turn proposal + course brief into requirements and a 4-week plan. | Requirements summary, open questions, weekly plan. | _(fill in yourself)_ |
+| 2 | Oct 1 | `git push` failed with error 403. | Explained the cause, steps to clear the stale login. | _(fill in yourself)_ |
+| 3 | Oct 1 | Save a 4-color palette (screenshot) for later design use. | `docs/design.md` with hex/RGB, suggested use per color, CSS variables example. | _(fill in yourself)_ |
+| 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Full English translation, same content. | _(fill in yourself)_ |
+| 5 | Oct 1 | Is high-quality photos alone enough for a % Arabica-style minimal homepage? Add that idea to the design doc. | Checked arabica.com, explained compression/responsive images/color grading also matter, added a "% Arabica" section. | _(fill in yourself)_ |
