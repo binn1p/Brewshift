@@ -54,7 +54,7 @@ This journal records, day by day, what was built, what was learned, and what got
 
 - **Goal:** Decide the requirements and set up Git and GitHub.
 - **Done:** Read course brief/proposal; decided requirements (see `docs/requirements-spec.md` — English UI first, no customer accounts, PIN clock-in, CSV export instead of a chart, order code + live status); decided client-server architecture (`public/`, `src/`, `data/`, config file, hosted on Render); set up Git + GitHub repo `binn1p/Brewshift`; added `CLAUDE.md` and tuned Claude's commit/push rules (auto for `CLAUDE.md` and `docs/`, ask first for everything else) and journal auto-fill rules; wrote `docs/design.md` (minh color palette) and `docs/design-ideas.md` (Myriade loading screen, Cộng Cà Phê vibe/fonts, % Arabica minimal layout, reference sites); reworked the journal into one-liner style.
-- **Learned:** _(fill in yourself — e.g. git/GitHub basics, client-server, product vs. deployment config — see commit history for what was covered)_
+- **Learned:** _ git/GitHub basics — see commit history for what was covered
 - **Problem:** `git push` failed with 403 (stale saved GitHub login) → cleared it with `git credential reject`, re-signed in via VS Code Sync.
 - **Commits:** `e6fd504` docs: add README; `ad09dc2` chore: add .gitignore; `f461f42` docs: add project journal and requirements spec; `bf7bef5` docs: fill in day 1 commits; `b9b5889` docs: add CLAUDE.md; `3c86e3d` docs: let Claude auto-commit CLAUDE.md changes; `6cd0e9a` docs: add color palette for minh branding; `0d55e17` docs: translate design ideas to English; `70f33ac` docs: add % Arabica minimal image-heavy idea; `918ceb6` docs: add journal auto-update rule; `0733f24` docs: auto-commit journal facts; fill in day 1 journal; `22a6f7f` docs: condense journal and AI log to one-liner style; `a36c2fc` docs: auto-commit all docs/ changes, note one-line fill-in
 - **AI used:** yes — requirements planning, git 403 fix, design palette/ideas docs (log #1–#5)
@@ -66,11 +66,11 @@ This journal records, day by day, what was built, what was learned, and what got
 
 ### Week 1 (Oct 1 – Oct 7)
 
-**What works now:**
-**What I learned this week:**
-**What was hardest:**
-**What I would do differently:**
-**Plan for week 2:**
+**What works now:** Github/Git
+**What I learned this week:**Github/Git
+**What was hardest:**Setting Github to work automaticaly
+**What I would do differently:**Have a more systematic naming style
+**Plan for week 2:**Responsive and more logic work between webs
 
 ---
 
@@ -80,8 +80,8 @@ The final report must include 3 to 5 examples of how AI was used. Record them he
 
 | # | Date | What I asked | What the AI gave me | What I kept, changed or rejected, and why |
 |---|---|---|---|---|
-| 1 | Oct 1 | Turn proposal + course brief into requirements and a 4-week plan. | Requirements summary, open questions, weekly plan. | _(fill in yourself)_ |
-| 2 | Oct 1 | `git push` failed with error 403. | Explained the cause, steps to clear the stale login. | _(fill in yourself)_ |
-| 3 | Oct 1 | Save a 4-color palette (screenshot) for later design use. | `docs/design.md` with hex/RGB, suggested use per color, CSS variables example. | _(fill in yourself)_ |
-| 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Full English translation, same content. | _(fill in yourself)_ |
-| 5 | Oct 1 | Is high-quality photos alone enough for a % Arabica-style minimal homepage? Add that idea to the design doc. | Checked arabica.com, explained compression/responsive images/color grading also matter, added a "% Arabica" section. | _(fill in yourself)_ |
+| 1 | Oct 1 | Turn proposal + course brief into requirements and a 4-week plan. | Requirements summary, open questions, weekly plan. | to be more like real-life project |
+| 2 | Oct 1 | `git push` failed with error 403. | Explained the cause, steps to clear the stale login. | fix error while setting up Git/Github |
+| 3 | Oct 1 | Save a 4-color palette (screenshot) for later design use. | `docs/design.md` with hex/RGB, suggested use per color, CSS variables example. | Go with warm-vibe retro |
+| 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Full English translation, same content. | Easier to read |
+| 5 | Oct 1 | Is high-quality photos alone enough for a % Arabica-style minimal homepage? Add that idea to the design doc. | Checked arabica.com, explained compression/responsive images/color grading also matter, added a "% Arabica" section. | Getting ideas |
