@@ -45,6 +45,14 @@ Client-server web app.
 
 Hosting: **Render**.
 
+## Branding (minh)
+
+- Logo chosen 2026-10-01: wordmark "minh" (all lowercase), font **Rye** (Google Fonts, free), Old West / vintage poster style. Letters are vector paths, no font install needed.
+- Files: `public/images/logo.svg` (light backgrounds, espresso `#3A2318`) and `public/images/logo-dark.svg` (dark backgrounds, mustard `#E0A93B`).
+- Palette idea: espresso `#3A2318`, cream `#F3E6CF`, burnt orange `#D2652D`, mustard `#E0A93B`, brick red `#A63A2A`, olive `#6E7B3A`.
+- Rye is decorative and hard to read small: logo and big titles only, never body text. Keep the logo at least ~28px tall.
+- The logo is per-shop branding of the minh deployment; Brewshift code stays generic (later the logo path comes from `config/shop.json`).
+
 ## Keeping this file up to date
 
 - Whenever an important decision is made in a chat (a requirement, folder structure, tech stack, or how the user wants to work), update this file right away.

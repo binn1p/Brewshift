@@ -45,6 +45,14 @@ Ideas collected from other café websites. These are ideas, not decisions yet.
   4. **Use CSS layout on purpose** (full-bleed images, consistent spacing) — good photos can still look broken without the right layout/CSS around them.
 - **When to build:** photo selection/shooting can start anytime; compression and responsive `<img>`/`srcset` markup fit once `public/` HTML/CSS work begins.
 
+## Logo (chosen 2026-10-01)
+
+- Wordmark "minh" (all lowercase), font **Rye** (Google Fonts, free), Old West / vintage poster style; letters converted to vector paths.
+- `public/images/logo.svg` for light backgrounds (espresso `#3A2318`); `public/images/logo-dark.svg` for dark backgrounds (mustard `#E0A93B`).
+- Palette idea: espresso `#3A2318`, cream `#F3E6CF`, burnt orange `#D2652D`, mustard `#E0A93B`, brick red `#A63A2A`, olive `#6E7B3A`.
+- Rye only for the logo and big titles, never body text; keep the logo at least ~28px tall.
+- Per-shop branding for minh; Brewshift code stays generic (logo path will come from `config/shop.json`).
+
 ## Other reference websites
 
 - Pikolo Espresso: https://pikoloespresso.com (single-page home layout)
