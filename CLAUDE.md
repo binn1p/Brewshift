@@ -10,6 +10,7 @@ It is a **generic café management product**: online pickup ordering plus a staf
 
 - Full requirements: `docs/requirements-spec.md`
 - Daily journal: `docs/project-journal.md` (filled in each evening)
+- `docs/design-ideas.md`: design inspiration (Myriade-style loading screen, Cộng Cà Phê retro font vibe with Oswald + Be Vietnam Pro, reference café sites). Ideas, not decisions.
 - GitHub: https://github.com/binn1p/Brewshift
 
 ## How to work with the user
@@ -49,6 +50,14 @@ Hosting: **Render**.
 - Whenever an important decision is made in a chat (a requirement, folder structure, tech stack, or how the user wants to work), update this file right away.
 - Keep it a short summary of key points only. No chat transcripts, no long explanations.
 - After updating, commit and push it yourself right away — no need to ask first.
+
+## Keeping the journal up to date
+
+`docs/project-journal.md` is a graded self-reflection document (it feeds the final report, including the AI collaboration log), so it must stay in the user's own voice — Claude does not write it end to end.
+
+- After work happens in a session, Claude fills in only the **factual/technical** parts of the current day's entry: `Done` bullets, `Commits today`, `AI used today`, and the first three columns of new `AI collaboration log` rows (`Date`, `What I asked`, `What the AI gave me`).
+- Claude leaves `Learned` and the AI log's last column ("what I kept, changed or rejected, and why") blank for the user to write themselves — those are the parts meant to show the user's own understanding.
+- Commit/push these factual updates like any other non-CLAUDE.md file: show the diff and get confirmation first.
 
 ## Current plan (Week 1)
 
