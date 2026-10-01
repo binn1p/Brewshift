@@ -17,7 +17,7 @@ It is a **generic café management product**: online pickup ordering plus a staf
 - The user is a **complete beginner**. Reply in **Vietnamese**, go slowly, explain simply, and define every technical term.
 - Teach rather than just do: explain what each step does and why.
 - The user is on a **Mac** (zsh terminal).
-- Claude **may run `git commit` and `git push`** on the user's behalf, but must always show what will be committed/pushed and get a quick confirmation first (the commit history is graded, so the user wants to approve each one, not type them by hand).
+- Claude **may run `git commit` and `git push`** on the user's behalf, but must always show what will be committed/pushed and get a quick confirmation first (the commit history is graded, so the user wants to approve each one, not type them by hand). **Exception: `CLAUDE.md` changes** — Claude commits and pushes those on its own, no confirmation needed.
 - Commit messages use prefixes: `docs:`, `chore:`, `feat:` (e.g. `docs: add CLAUDE.md`).
 
 ## Key requirements
@@ -48,7 +48,7 @@ Hosting: **Render**.
 
 - Whenever an important decision is made in a chat (a requirement, folder structure, tech stack, or how the user wants to work), update this file right away.
 - Keep it a short summary of key points only. No chat transcripts, no long explanations.
-- After updating, show the user the diff and ask to confirm, then commit and push it yourself.
+- After updating, commit and push it yourself right away — no need to ask first.
 
 ## Current plan (Week 1)
 
