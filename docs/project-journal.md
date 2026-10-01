@@ -94,7 +94,8 @@ This journal records, day by day, what was built, what was learned, and what got
 
 **Commits today**
 - `e6fd504` docs: add README
-- `<hash>` chore: add .gitignore
+- `ad09dc2` chore: add .gitignore
+- `f461f42` docs: add project journal and requirements spec
 
 **AI used today:** yes (see AI log entries #1 and #2)
 
