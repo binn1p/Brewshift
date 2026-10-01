@@ -57,7 +57,7 @@ Hosting: **Render**.
 
 - After work happens in a session, Claude fills in only the **factual/technical** parts of the current day's entry: `Done` bullets, `Commits today`, `AI used today`, and the first three columns of new `AI collaboration log` rows (`Date`, `What I asked`, `What the AI gave me`).
 - Claude leaves `Learned` and the AI log's last column ("what I kept, changed or rejected, and why") blank for the user to write themselves — those are the parts meant to show the user's own understanding.
-- Commit/push these factual updates like any other non-CLAUDE.md file: show the diff and get confirmation first.
+- Like `CLAUDE.md`, Claude commits and pushes these factual journal updates itself, no confirmation needed.
 
 ## Current plan (Week 1)
 

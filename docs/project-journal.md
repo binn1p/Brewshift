@@ -80,6 +80,9 @@ This journal records, day by day, what was built, what was learned, and what got
 - Configured Git on my Mac (`user.name`, `user.email`, default branch `main`).
 - Created the public repository `binn1p/Brewshift` on GitHub and cloned it with VS Code.
 - Made my first two commits: `README.md` and `.gitignore`.
+- Added `CLAUDE.md` (AI assistant context file) to the repo, and set the rule for how/when Claude may commit and push on my behalf.
+- Picked a first color palette for "minh" branding and saved it to `docs/design.md`.
+- Wrote `docs/design-ideas.md`: design inspiration notes (Myriade-style loading screen, Cộng Cà Phê retro vibe/fonts, % Arabica minimal image-heavy homepage, other reference sites), in English.
 
 **Learned**
 - **Git** saves snapshots of my project (commits). **GitHub** keeps a copy online so others can see it.
@@ -96,8 +99,14 @@ This journal records, day by day, what was built, what was learned, and what got
 - `e6fd504` docs: add README
 - `ad09dc2` chore: add .gitignore
 - `f461f42` docs: add project journal and requirements spec
+- `bf7bef5` docs: fill in day 1 commits
+- `b9b5889` docs: add CLAUDE.md
+- `3c86e3d` docs: let Claude auto-commit CLAUDE.md changes
+- `6cd0e9a` docs: add color palette for minh branding
+- `0d55e17` docs: translate design ideas to English
+- `70f33ac` docs: add % Arabica minimal image-heavy idea
 
-**AI used today:** yes (see AI log entries #1 and #2)
+**AI used today:** yes (see AI log entries #1–#5)
 
 **Next step**
 - Learn what HTML is and write the first page: the **minh** shop page with its name, opening hours and 3 to 5 menu items with prices.
@@ -124,6 +133,6 @@ The final report must include 3 to 5 examples of how AI was used. Record them he
 |---|---|---|---|---|
 | 1 | Oct 1 | Help turn my proposal and the course brief into a list of requirements and a 4-week plan. | A requirements summary, questions to decide, and a weekly plan. | I made the decisions myself (single café "minh", no customer accounts, PIN clock-in, CSV export instead of a chart). I dropped the multi-shop design from my original proposal, because the course only needs one deployed café. |
 | 2 | Oct 1 | My `git push` failed with error 403. | An explanation of the error and the steps to clear the old saved login. | I ran the commands, understood that the commit had succeeded and only the push failed, and fixed it through VS Code. |
-| 3 | | | | |
-| 4 | | | | |
-| 5 | | | | |
+| 3 | Oct 1 | Save a color palette (screenshot of 4 swatches) for later design use. | Created `docs/design.md` with the hex/RGB values, suggested usage per color, and a CSS custom-properties example. | |
+| 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Translated the full file (loading screen idea, font/vibe idea, reference site list) to English, keeping the same content. | |
+| 5 | Oct 1 | Asked whether just taking high-quality photos is enough for a % Arabica-style minimal homepage; also asked to add that idea to the design doc. | Fetched arabica.com to check, explained that compression, responsive images, and consistent color grading also matter, and added a "% Arabica" section to `docs/design-ideas.md`. | |
