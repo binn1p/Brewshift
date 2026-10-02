@@ -48,7 +48,7 @@ Hosting: **Render**.
 ## Branding (minh)
 
 - Logo chosen 2026-10-01: wordmark "minh" (all lowercase), font **Rye** (Google Fonts, free), Old West / vintage poster style. Letters are vector paths, no font install needed.
-- Files: `public/images/logo.svg` (light backgrounds, espresso `#3A2318`) and `public/images/logo-dark.svg` (dark backgrounds, mustard `#E0A93B`).
+- Files: `public/images/minh-4-saloon-light.svg` (light backgrounds, espresso `#3A2318`) and `public/images/minh-4-saloon-dark.svg` (dark backgrounds, mustard `#E0A93B`).
 - Palette idea: espresso `#3A2318`, cream `#F3E6CF`, burnt orange `#D2652D`, mustard `#E0A93B`, brick red `#A63A2A`, olive `#6E7B3A`.
 - Rye is decorative and hard to read small: logo and big titles only, never body text. Keep the logo at least ~28px tall.
 - The logo is per-shop branding of the minh deployment; Brewshift code stays generic (later the logo path comes from `config/shop.json`).
@@ -60,6 +60,7 @@ Hosting: **Render**.
 - Week 1: look in CSS only (`border-radius`, `position`, `z-index`). Week 2: click a tab to bring it to the front with a little JavaScript.
 - Phones: media query moves ears to the right side edge, panels still stacked, vertical labels via `writing-mode`; short labels (ABOUT, MENU, ORDER), narrow ears.
 - Details: `docs/design-ideas.md` section 4.
+- **Built 2026-10-02:** `public/index.html` + `public/css/style.css`, static (no JS yet). Exact colors picked: `--color-bg: #F2C14E` (poster yellow), `--color-pink: #CC6B73` (Menu tab, new — not in the earlier palettes), `--color-brown`/`--color-cream` reuse the branding palette above. Shows About + Menu sections stacked (no Order section yet); content (story, hours, 5 menu items) hardcoded from `docs/shop-profile.md` and `docs/menu.md` — will move to `config/shop.json`/`data/menu.json` in week 2.
 
 ## Menu (minh)
 
