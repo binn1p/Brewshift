@@ -10,7 +10,7 @@ It is a **generic café management product**: online pickup ordering plus a staf
 
 - Full requirements: `docs/requirements-spec.md`
 - Daily journal: `docs/project-journal.md` (filled in each evening)
-- `docs/design-ideas.md`: design inspiration (Myriade-style loading screen, Cộng Cà Phê retro font vibe with Oswald + Be Vietnam Pro, reference café sites). Ideas, not decisions.
+- `docs/design-ideas.md`: design inspiration (Myriade-style loading screen, Cộng Cà Phê retro font vibe with Oswald + Be Vietnam Pro, reference café sites, folder-tab home page). Ideas, not decisions.
 - GitHub: https://github.com/binn1p/Brewshift
 
 ## How to work with the user
@@ -52,6 +52,14 @@ Hosting: **Render**.
 - Palette idea: espresso `#3A2318`, cream `#F3E6CF`, burnt orange `#D2652D`, mustard `#E0A93B`, brick red `#A63A2A`, olive `#6E7B3A`.
 - Rye is decorative and hard to read small: logo and big titles only, never body text. Keep the logo at least ~28px tall.
 - The logo is per-shop branding of the minh deployment; Brewshift code stays generic (later the logo path comes from `config/shop.json`).
+
+## Home page layout idea (minh, 2026-10-01)
+
+- Yellow background, "minh" logo centered at top, LOG IN link top right.
+- Below: overlapping folder-style tabs stacked like file folders, each with a rounded "ear" label (About Us brown, View Our Menu pink, later Order). Colors yellow/pink/brown, retro.
+- Week 1: look in CSS only (`border-radius`, `position`, `z-index`). Week 2: click a tab to bring it to the front with a little JavaScript.
+- Phones: media query moves ears to the right side edge, panels still stacked, vertical labels via `writing-mode`; short labels (ABOUT, MENU, ORDER), narrow ears.
+- Details: `docs/design-ideas.md` section 4.
 
 ## Menu (minh)
 

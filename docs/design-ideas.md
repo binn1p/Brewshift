@@ -45,6 +45,17 @@ Ideas collected from other café websites. These are ideas, not decisions yet.
   4. **Use CSS layout on purpose** (full-bleed images, consistent spacing) — good photos can still look broken without the right layout/CSS around them.
 - **When to build:** photo selection/shooting can start anytime; compression and responsive `<img>`/`srcset` markup fit once `public/` HTML/CSS work begins.
 
+## 4. Home page with folder tabs (the user's own idea, 2026-10-01)
+
+- **Look:** yellow background, the "minh" logo centered at the top, a **LOG IN** link in the top right corner.
+- **Below the logo:** overlapping *folder tabs* stacked like paper file folders. Each panel has a rounded "ear" (the small tab sticking out) with its label: **About Us** (brown), **View Our Menu** (pink), later **Order** etc.
+- **Colors:** yellow / pink / brown, retro vibe that matches the Rye logo.
+- **How to build it:**
+  1. Week 1 (HTML + CSS only): each folder is a `div`; `border-radius` rounds the ear's top corners, `position: relative/absolute` places the ears side by side, `z-index` decides which folder sits on top.
+  2. Week 2 (a little JavaScript): clicking a tab brings that folder to the front (change its `z-index` or add an `active` class).
+- **Small screens (phones):** a CSS *media query* (a rule that only applies below a certain screen width) moves each tab's ear from the top edge to the **right side edge**; panels stay stacked. The label turns vertical with `writing-mode: vertical-rl`.
+- **Note for phones:** keep labels short (**ABOUT**, **MENU**, **ORDER**) and ears narrow so they fit down the side.
+
 ## Logo (chosen 2026-10-01)
 
 - Wordmark "minh" (all lowercase), font **Rye** (Google Fonts, free), Old West / vintage poster style; letters converted to vector paths.
