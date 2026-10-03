@@ -31,6 +31,7 @@ Ideas collected from other café websites. These are ideas, not decisions yet.
   h1, h2, h3 { font-family: "Oswald", sans-serif; text-transform: uppercase; }
   body { font-family: "Be Vietnam Pro", sans-serif; background: #E9E4D6; color: #2b2b2b; }
   ```
+- **Decided 2026-10-03:** Oswald (headings, tab ear labels) + Be Vietnam Pro (body) + Rye (logo and a few big titles only). See `CLAUDE.md` > Fonts.
 - **Note:** "minh" should have its own colors, not copy Cộng's colors directly. Only borrow the vibe.
 
 ## 3. Minimal, image-heavy homepage (from % Arabica) — the user likes this one

@@ -53,6 +53,13 @@ Hosting: **Render**.
 - Rye is decorative and hard to read small: logo and big titles only, never body text. Keep the logo at least ~28px tall.
 - The logo is per-shop branding of the minh deployment; Brewshift code stays generic (later the logo path comes from `config/shop.json`).
 
+## Fonts (minh, decided 2026-10-03)
+
+- **Rye**: logo and a few big decorative titles only; use sparingly.
+- **Oswald**: headings, including the folder-tab ear labels (ABOUT, MENU, ORDER).
+- **Be Vietnam Pro**: body text (dish descriptions, prices, forms); renders Vietnamese diacritics correctly.
+- All three are free from Google Fonts, loaded with one `<link>` line in the HTML `<head>`.
+
 ## Home page layout idea (minh, 2026-10-01)
 
 - Yellow background, "minh" logo centered at top, LOG IN link top right.
