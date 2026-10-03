@@ -40,7 +40,6 @@ body {
   position: relative;
   z-index: 1;
   width: min(60vw, 320px);
-  animation: pulse 1.6s ease-in-out infinite;
 }
 
 .beans {
@@ -77,15 +76,9 @@ body {
   to   { transform: translateY(105vh) rotate(360deg); }
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.05); }
-}
-
 /* Visitors who asked their device for less motion get a still screen */
 @media (prefers-reduced-motion: reduce) {
   .bean { display: none; }
-  .preloader__logo { animation: none; }
 }
 
 /* ---------- Page (placeholder for idea 2) ---------- */
