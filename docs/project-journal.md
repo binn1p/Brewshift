@@ -50,6 +50,16 @@ This journal records, day by day, what was built, what was learned, and what got
 
 ## Entries
 
+### Day 3 — Saturday, October 3, 2026 (~_ h)
+
+- **Goal:** Start a second home page design (idea 2) on its own branch, beginning with a loading screen.
+- **Done:** Created branch `idea-2` from `main`; built a loading screen (espresso background, mustard minh logo with a pulse, 24 CSS coffee beans falling via `@keyframes`, fades out after page load, min 1.8 s, beans hidden for reduced-motion users); placeholder home page in Cộng-style Oswald/Be Vietnam Pro on cream.
+- **Learned:** _(fill in yourself)_
+- **Problem:** Page loads too fast for the loading screen to be seen → added a minimum display time (`MIN_SHOW_MS`).
+- **Commits:** `28d7f03` feat: idea 2 loading screen (logo + falling coffee beans) (branch `idea-2`)
+- **AI used:** yes — wrote the loading screen HTML/CSS/JS (log #6)
+- **Next:** Build the real idea 2 home page content behind the loading screen.
+
 ### Day 1 — Thursday, October 1, 2026 (~1 h)
 
 - **Goal:** Decide the requirements and set up Git and GitHub.
@@ -85,3 +95,4 @@ The final report must include 3 to 5 examples of how AI was used. Record them he
 | 3 | Oct 1 | Save a 4-color palette (screenshot) for later design use. | `docs/design.md` with hex/RGB, suggested use per color, CSS variables example. | Go with warm-vibe retro |
 | 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Full English translation, same content. | Easier to read |
 | 5 | Oct 1 | Is high-quality photos alone enough for a % Arabica-style minimal homepage? Add that idea to the design doc. | Checked arabica.com, explained compression/responsive images/color grading also matter, added a "% Arabica" section. | Getting ideas |
+| 6 | Oct 3 | Make branch idea 2, starting with a dark loading screen with the logo and falling coffee beans. | `idea-2` branch with preloader HTML, CSS bean shapes/animations, JS that spawns random beans and fades the screen out. | _(fill in yourself)_ |
