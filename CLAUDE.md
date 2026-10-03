@@ -68,6 +68,16 @@ Hosting: **Render**.
 - Phones: media query moves ears to the right side edge, panels still stacked, vertical labels via `writing-mode`; short labels (ABOUT, MENU, ORDER), narrow ears.
 - Details: `docs/design-ideas.md` section 4.
 - **Built 2026-10-02:** `public/index.html` + `public/css/style.css`, static (no JS yet). Exact colors picked: `--color-bg: #F2C14E` (poster yellow), `--color-pink: #CC6B73` (Menu tab, new — not in the earlier palettes), `--color-brown`/`--color-cream` reuse the branding palette above. Shows About + Menu sections stacked (no Order section yet); content (story, hours, 5 menu items) hardcoded from `docs/shop-profile.md` and `docs/menu.md` — will move to `config/shop.json`/`data/menu.json` in week 2.
+- This is **idea 1**, kept on git branch `idea-1` (not merged into `main`).
+
+## Home page idea 2 (branch `idea-2`, 2026-10-03)
+
+- Alternative design on branch `idea-2`; `main` holds docs only until one idea is picked.
+- Loading screen: espresso background, still mustard logo, CSS coffee beans falling behind (JS spawns them), fades out after load.
+- Main page (from the user's sketch): seasonal-vibe photo as page background; big rounded cream card with logo top center, LOG IN top right; bento grid of rounded tiles, each a link: **Menu** (tall left, photo bg) → menu page; **Seasonal drink** (L-shape interlocking with Menu, photo at bottom) → that drink's page; **Promo** (top right) → promotions page; **About minh** (bottom right) → about page.
+- Photos: `public/images/backgrounds/` (Unsplash, credits in `CREDITS.md`).
+- Planned next: menu page where each item has a quantity control to add straight to the cart; clicking an item opens its own product page (ingredients, inspiration) that can also add to cart; both open a customize pop-up with an X to go back to the menu; a draggable coffee-bean-shaped cart button with a bag icon on every page; About and Promo pages (designed later).
+- Login: customers can log in for loyalty points; the owner logging in goes to an owner monitor/dashboard (later).
 
 ## Menu (minh)
 
