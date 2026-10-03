@@ -73,15 +73,19 @@ Hosting: **Render**.
 ## Home page idea 2 (branch `idea-2`, 2026-10-03)
 
 - Alternative design on branch `idea-2`; `main` holds docs only until one idea is picked.
-- Loading screen: espresso background, still mustard logo, CSS coffee beans falling behind (JS spawns them), fades out after load.
-- Main page (from the user's sketch): seasonal-vibe photo as page background; big rounded cream card with logo top center, LOG IN top right; bento grid of rounded tiles, each a link: **Menu** (tall left, photo bg) → menu page; **Seasonal drink** (L-shape interlocking with Menu, photo at bottom) → that drink's page; **Promo** (top right) → promotions page; **About minh** (bottom right) → about page.
-- Photos: `public/images/backgrounds/` (Unsplash, credits in `CREDITS.md`).
-- Planned next: menu page where each item has a quantity control to add straight to the cart; clicking an item opens its own product page (ingredients, inspiration) that can also add to cart; both open a customize pop-up with an X to go back to the menu; a draggable coffee-bean-shaped cart button with a bag icon on every page; About and Promo pages (designed later).
+- Loading screen: espresso background, still mustard logo, coffee beans falling behind (JS spawns them), fades out after load.
+- Main page (from the user's sketch): seasonal-vibe photo as page background; big rounded cream card (max 1320px) with logo top center, LOG IN top right; bento grid of rounded tiles, each a link that scales up slightly on hover: **Menu** (L-shape, photo bg) → menu page; **Seasonal drink** (one photo cut into an L interlocking with Menu, all corners rounded; `main.js` computes the `clip-path`) → that drink's page; **Promo** (top right) → promotions page; **About minh** (bottom right) → about page.
+- Photos: `public/images/backgrounds/` (Unsplash, credits in `CREDITS.md`), color-graded in CSS with one shared warm tint (`--grade`, `background-blend-mode: color`).
+- Coffee bean art: `public/images/bean.svg`, retro poster style (flat colors, ink outline, halftone dots, off-register brick-red shadow). Used for loading screen, decor and cart button.
+- Card background decor: beans scattered randomly; chosen by `<body data-decor="beans">` and the `DECOR` list in `main.js`, so seasonal sets (F1, maple leaves, snowflakes…) can be added later. Beans are the default.
+- Cart: `public/js/cart.js`, included on every page. A draggable coffee bean button (no icon, count badge only), fixed above everything, position remembered; clicking opens a `<dialog>` cart window that dims and blurs the page. Cart stored in `localStorage` (`brewshift-cart`).
+- Planned next: menu page where each item has a quantity control to add straight to the cart; clicking an item opens its own product page (ingredients, inspiration) that can also add to cart; both open a customize pop-up with an X to go back to the menu; About and Promo pages (designed later).
 - Login: customers can log in for loyalty points; the owner logging in goes to an owner monitor/dashboard (later).
 
 ## Menu (minh)
 
 - Menu (2026-10-01): 13 Vietnamese coffee drinks, prices in CAD (5–9). Full list in `docs/menu.md`; later becomes `data/menu.json`.
+- Drink images (2026-10-03): one original SVG illustration per drink in `public/images/menu/` (English kebab-case names, e.g. `iced-milk-coffee.svg`), same 3/4 overhead angle, transparent background, retro style matching `bean.svg`; list in that folder's `README.md`. For a white "photo canvas" menu page; click-to-open drink popup with quantity comes in week 2 (JavaScript).
 
 ## Keeping this file up to date
 

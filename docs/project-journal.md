@@ -53,12 +53,12 @@ This journal records, day by day, what was built, what was learned, and what got
 ### Day 3 — Saturday, October 3, 2026 (~_ h)
 
 - **Goal:** Start a second home page design (idea 2) on its own branch, beginning with a loading screen.
-- **Done:** Created branch `idea-2` from `main`; built a loading screen (espresso background, mustard minh logo with a pulse, 24 CSS coffee beans falling via `@keyframes`, fades out after page load, min 1.8 s, beans hidden for reduced-motion users); placeholder home page in Cộng-style Oswald/Be Vietnam Pro on cream.
+- **Done:** Created branch `idea-2` from `main`; built a loading screen (espresso background, mustard minh logo with a pulse, 24 CSS coffee beans falling via `@keyframes`, fades out after page load, min 1.8 s, beans hidden for reduced-motion users); placeholder home page in Cộng-style Oswald/Be Vietnam Pro on cream; logo made still; home page from my sketch (CSS Grid bento, Menu + seasonal drink as interlocking L shapes cut with JS `clip-path`, hover scale, Unsplash photos color-graded in CSS); random coffee-bean decor (seasonal sets later); draggable coffee-bean cart button on every page opening a `<dialog>` cart window (localStorage); redrew the bean as a retro poster-style SVG.
 - **Learned:** _(fill in yourself)_
-- **Problem:** Page loads too fast for the loading screen to be seen → added a minimum display time (`MIN_SHOW_MS`).
-- **Commits:** `28d7f03` feat: idea 2 loading screen (logo + falling coffee beans) (branch `idea-2`)
-- **AI used:** yes — wrote the loading screen HTML/CSS/JS (log #6)
-- **Next:** Build the real idea 2 home page content behind the loading screen.
+- **Problem:** Page loads too fast for the loading screen to be seen → added a minimum display time (`MIN_SHOW_MS`); hover brightness turned the L-shape's cream ring white → replaced the two-piece L with one `clip-path` shape.
+- **Commits:** `28d7f03` feat: idea 2 loading screen (logo + falling coffee beans); `ee9d80a` feat: keep minh logo still on loading screen; `2169f66` feat: idea 2 home page with L-shaped tiles, bean decor and draggable cart (all on branch `idea-2`); `78c082e` docs: journal entry for Oct 3; `392d303` docs: record font decision; `5da5cd8` docs: record home page idea 2 plan
+- **AI used:** yes — loading screen, home page layout from sketch, cart button/window, bean SVG (log #6–#8)
+- **Next:** Menu page with quantity controls that add to the cart.
 
 ### Day 1 — Thursday, October 1, 2026 (~1 h)
 
@@ -96,3 +96,5 @@ The final report must include 3 to 5 examples of how AI was used. Record them he
 | 4 | Oct 1 | Rewrite `docs/design-ideas.md` in English. | Full English translation, same content. | Easier to read |
 | 5 | Oct 1 | Is high-quality photos alone enough for a % Arabica-style minimal homepage? Add that idea to the design doc. | Checked arabica.com, explained compression/responsive images/color grading also matter, added a "% Arabica" section. | Getting ideas |
 | 6 | Oct 3 | Make branch idea 2, starting with a dark loading screen with the logo and falling coffee beans. | `idea-2` branch with preloader HTML, CSS bean shapes/animations, JS that spawns random beans and fades the screen out. | _(fill in yourself)_ |
+| 7 | Oct 3 | Build the home page from my hand-drawn sketch (bento tiles, L-shaped seasonal tile, photos), then make the L one photo, round all corners, add hover zoom and match photo colors. | CSS Grid layout, JS that computes a rounded L `clip-path` from the grid sizes, shared CSS color-grade layer. | _(fill in yourself)_ |
+| 8 | Oct 3 | Add coffee-bean decor, a draggable coffee-bean cart button on every page that opens a cart window, and make the bean look retro. | `cart.js` (drag vs click, saved position, `<dialog>` with blurred backdrop, localStorage cart), `DECOR` list for seasonal decor, retro `bean.svg`. | _(fill in yourself)_ |
