@@ -1,0 +1,121 @@
+:root {
+  --color-espresso: #3A2318;
+  --color-cream: #F3E6CF;
+  --color-orange: #D2652D;
+  --color-mustard: #E0A93B;
+  --color-bean: #8A5A3B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Be Vietnam Pro", sans-serif;
+  background: var(--color-cream);
+  color: var(--color-espresso);
+}
+
+/* ---------- Loading screen ---------- */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-espresso);
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+
+.preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.preloader__logo {
+  position: relative;
+  z-index: 1;
+  width: min(60vw, 320px);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.beans {
+  position: absolute;
+  inset: 0;
+}
+
+/* One coffee bean: a brown oval with a curved crease down the middle */
+.bean {
+  --size: 1;
+  position: absolute;
+  top: 0;
+  width: calc(18px * var(--size));
+  height: calc(26px * var(--size));
+  border-radius: 50%;
+  background: var(--color-bean);
+  opacity: 0.35;
+  animation: fall linear infinite;
+}
+
+.bean::after {
+  content: "";
+  position: absolute;
+  top: 12%;
+  left: 40%;
+  width: 30%;
+  height: 76%;
+  border-left: 2px solid var(--color-espresso);
+  border-radius: 50%;
+}
+
+@keyframes fall {
+  from { transform: translateY(-40px) rotate(0deg); }
+  to   { transform: translateY(105vh) rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+
+/* Visitors who asked their device for less motion get a still screen */
+@media (prefers-reduced-motion: reduce) {
+  .bean { display: none; }
+  .preloader__logo { animation: none; }
+}
+
+/* ---------- Page (placeholder for idea 2) ---------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+.logo {
+  height: 48px;
+}
+
+.login-link {
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  color: var(--color-espresso);
+  text-decoration: none;
+}
+
+.hero {
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-family: "Oswald", sans-serif;
+  font-size: clamp(2rem, 6vw, 4rem);
+  text-transform: uppercase;
+}
