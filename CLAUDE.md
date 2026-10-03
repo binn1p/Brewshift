@@ -68,11 +68,11 @@ Hosting: **Render**.
 - Phones: media query moves ears to the right side edge, panels still stacked, vertical labels via `writing-mode`; short labels (ABOUT, MENU, ORDER), narrow ears.
 - Details: `docs/design-ideas.md` section 4.
 - **Built 2026-10-02:** `public/index.html` + `public/css/style.css`, static (no JS yet). Exact colors picked: `--color-bg: #F2C14E` (poster yellow), `--color-pink: #CC6B73` (Menu tab, new — not in the earlier palettes), `--color-brown`/`--color-cream` reuse the branding palette above. Shows About + Menu sections stacked (no Order section yet); content (story, hours, 5 menu items) hardcoded from `docs/shop-profile.md` and `docs/menu.md` — will move to `config/shop.json`/`data/menu.json` in week 2.
-- This is **idea 1**, kept on git branch `idea-1` (not merged into `main`).
+- This is **idea 1**, kept on git branch `idea-1` (not merged; not chosen).
 
-## Home page idea 2 (branch `idea-2`, 2026-10-03)
+## Home page idea 2 — CHOSEN (merged into `main` 2026-10-03)
 
-- Alternative design on branch `idea-2`; `main` holds docs only until one idea is picked.
+- Chosen design; built on branch `idea-2`, merged into `main`. Work on the front end continues on `main` from here.
 - Loading screen: espresso background, still mustard logo, coffee beans falling behind (JS spawns them), fades out after load.
 - Main page (from the user's sketch): seasonal-vibe photo as page background; big rounded cream card (max 1320px) with logo top center, LOG IN top right; bento grid of rounded tiles, each a link that scales up slightly on hover: **Menu** (L-shape, photo bg) → menu page; **Seasonal drink** (one photo cut into an L interlocking with Menu, all corners rounded; `main.js` computes the `clip-path`) → that drink's page; **Promo** (top right) → promotions page; **About minh** (bottom right) → about page.
 - Photos: `public/images/backgrounds/` (Unsplash, credits in `CREDITS.md`), color-graded in CSS with one shared warm tint (`--grade`, `background-blend-mode: color`).
