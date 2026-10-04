@@ -90,11 +90,13 @@ Hosting: **Render**.
 
 ## Staff side (built 2026-10-04, front end only)
 
-- `kiosk.html` (shared counter iPad, from the user's sketch): date + big live clock, "Employee code" with 6 one-digit boxes (auto-advance, masked), a daily "weird question" A/B poll with tally marks. Correct code → welcome dialog ("Hi Linh, welcome in!…") → `staff.html`. Pending staff get an "awaiting approval" message. Wrong code just shows a message — no lockout (FR-34 removed by the user).
+- `kiosk.html` (shared counter iPad, from the user's sketch): date + big live clock, "Employee code" with 6 display boxes (masked), a daily "weird question" A/B poll with tally marks. Correct code → welcome dialog ("Hi Linh, welcome in!…") → `staff.html`. Pending staff get an "awaiting approval" message. Wrong code just shows a message — no lockout (FR-34 removed by the user).
 - `staff.html` (from sketch): name, status, today's shift, big Clock in / Clock out button; week view S–S with hours worked per day + scheduled shift, prev/next week; next 3 shifts; Download CSV (full hour log) and Print (this week). Shows only the signed-in person's data; Done or 2 idle minutes → back to kiosk. Who is signed in: `sessionStorage` `brewshift-staff-id`.
 - Flow confirmed by the user: enter code → welcome → personal page → tap Clock in/out (spec v1.2 updated FR-30/31/33 to match).
 - Data: `js/store.js` is a temporary localStorage store (`brewshift-db-v1`) with `users`, `punches`, `shifts` (schedule for ALL staff, filtered per person), `votes`; demo data built around today. Pages only call its functions (`findUserByPin`, `togglePunch`, `getShifts`, `getWorkSessions`…) so week 2 can swap in server calls. Demo PINs are plain text (123456 Linh, 246810 Bao, 111222 Mai pending) — the server must keep bcrypt hashes and use server time.
 - Planned later: owner side to manage everyone's schedule (shifts), approve staff, weekly hours table, CSV export.
+- Kiosk has an on-screen 0–9 keypad (+ Clear, ⌫) for the iPad; the six boxes are display-only so the iPad keyboard never opens. Upright iPad (≤1000px): clock, code + keypad, poll stacked.
+- Idea noted, not built: walk-in counter orders (FR-45, Should) reusing menu + drink window + cart, same queue as online orders — only after all Must items.
 
 ## Menu (minh)
 

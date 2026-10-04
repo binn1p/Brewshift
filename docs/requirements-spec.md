@@ -17,6 +17,7 @@
 | 1.0 | 2026-10-01 | binn1p | Initial baseline from the approved proposal and the requirement decisions of Oct 1. |
 | 1.1 | 2026-10-04 | binn1p | Removed FR-34 (kiosk lockout after wrong PINs). |
 | 1.2 | 2026-10-04 | binn1p | Kiosk flow: PIN → welcome → personal staff page with a Clock in/out button (FR-30, FR-31, FR-33). |
+| 1.3 | 2026-10-04 | binn1p | Added FR-45 (walk-in counter orders, Should); FR-30 now an on-screen 0–9 keypad. |
 
 ---
 
@@ -159,7 +160,7 @@ Priority uses MoSCoW. "Week" is the planned delivery week.
 
 | ID | Requirement | Priority | Week |
 |---|---|---|---|
-| FR-30 | The kiosk page shall offer six large digit boxes (using the device's numeric keyboard) for entering a 6-digit PIN. | Must | 3 |
+| FR-30 | The kiosk page shall offer an on-screen 0–9 keypad (with delete and clear) and six boxes showing the digits entered, for a 6-digit PIN. | Must | 3 |
 | FR-31 | A valid PIN of an approved staff member shall show a welcome message and open that person's staff page, where one button records a clock-in if they are clocked out, or a clock-out if they are clocked in. | Must | 3 |
 | FR-32 | The time of every punch shall come from the server clock; any time sent by the browser is ignored. | Must | 3 |
 | FR-33 | The staff page shall confirm each punch with the action and the time. | Must | 3 |
@@ -174,6 +175,7 @@ Priority uses MoSCoW. "Week" is the planned delivery week.
 | FR-42 | A staff member shall see the queue of open orders, oldest first. | Must | 4 |
 | FR-43 | A staff member shall be able to move an order from received to in progress to ready. | Must | 4 |
 | FR-44 | The order queue shall refresh automatically without reloading the page. | Should | 4 |
+| FR-45 | Staff should be able to take a walk-in order at the counter by reusing the menu, drink window and cart on the iPad, entering the customer's name; the order joins the same queue as online orders. To do only after all Must items are done. | Should | 4+ |
 
 ### 3.6 Owner dashboard (login as owner)
 
