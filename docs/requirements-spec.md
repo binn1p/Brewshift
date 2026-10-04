@@ -16,6 +16,7 @@
 |---|---|---|---|
 | 1.0 | 2026-10-01 | binn1p | Initial baseline from the approved proposal and the requirement decisions of Oct 1. |
 | 1.1 | 2026-10-04 | binn1p | Removed FR-34 (kiosk lockout after wrong PINs). |
+| 1.2 | 2026-10-04 | binn1p | Kiosk flow: PIN → welcome → personal staff page with a Clock in/out button (FR-30, FR-31, FR-33). |
 
 ---
 
@@ -158,10 +159,10 @@ Priority uses MoSCoW. "Week" is the planned delivery week.
 
 | ID | Requirement | Priority | Week |
 |---|---|---|---|
-| FR-30 | The kiosk page shall offer a large numeric keypad for entering a 6-digit PIN. | Must | 3 |
-| FR-31 | A valid PIN of an approved staff member shall record a clock-in if they are clocked out, or a clock-out if they are clocked in. | Must | 3 |
+| FR-30 | The kiosk page shall offer six large digit boxes (using the device's numeric keyboard) for entering a 6-digit PIN. | Must | 3 |
+| FR-31 | A valid PIN of an approved staff member shall show a welcome message and open that person's staff page, where one button records a clock-in if they are clocked out, or a clock-out if they are clocked in. | Must | 3 |
 | FR-32 | The time of every punch shall come from the server clock; any time sent by the browser is ignored. | Must | 3 |
-| FR-33 | The kiosk shall confirm each punch with the staff member's first name, the action and the time. | Must | 3 |
+| FR-33 | The staff page shall confirm each punch with the action and the time. | Must | 3 |
 | ~~FR-34~~ | ~~After 5 consecutive wrong PINs, the kiosk shall refuse PIN entry for 5 minutes.~~ Removed 2026-10-04: a wrong PIN only shows a message. | — | — |
 
 ### 3.5 Staff page (login as staff)
