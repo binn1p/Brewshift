@@ -88,6 +88,14 @@ Hosting: **Render**.
 - JS files: `decor.js` (every page), `home.js` (loading screen + L shapes), `options.js` (icons, milks, taxes, prices), `menu-data.js` (7 drinks), `cart.js`, `drink-window.js`, `menu.js`, `about.js`.
 - An earlier list-style menu/drink-page experiment is kept in `git stash` (not used).
 
+## Staff side (built 2026-10-04, front end only)
+
+- `kiosk.html` (shared counter iPad, from the user's sketch): date + big live clock, "Employee code" with 6 one-digit boxes (auto-advance, masked), a daily "weird question" A/B poll with tally marks. Correct code → welcome dialog ("Hi Linh, welcome in!…") → `staff.html`. Pending staff get an "awaiting approval" message. Wrong code just shows a message — no lockout (FR-34 removed by the user).
+- `staff.html` (from sketch): name, status, today's shift, big Clock in / Clock out button; week view S–S with hours worked per day + scheduled shift, prev/next week; next 3 shifts; Download CSV (full hour log) and Print (this week). Shows only the signed-in person's data; Done or 2 idle minutes → back to kiosk. Who is signed in: `sessionStorage` `brewshift-staff-id`.
+- Flow chosen by the user: enter code → personal page → tap Clock in/out (differs from FR-31's "PIN punches immediately"; spec not changed yet).
+- Data: `js/store.js` is a temporary localStorage store (`brewshift-db-v1`) with `users`, `punches`, `shifts` (schedule for ALL staff, filtered per person), `votes`; demo data built around today. Pages only call its functions (`findUserByPin`, `togglePunch`, `getShifts`, `getWorkSessions`…) so week 2 can swap in server calls. Demo PINs are plain text (123456 Linh, 246810 Bao, 111222 Mai pending) — the server must keep bcrypt hashes and use server time.
+- Planned later: owner side to manage everyone's schedule (shifts), approve staff, weekly hours table, CSV export.
+
 ## Menu (minh)
 
 - Menu (updated 2026-10-04): 7 simple Vietnamese coffees, CAD 6–8: iced/hot black coffee, iced/hot milk coffee, orange coffee, coconut coffee, egg coffee. Full list in `docs/menu.md`; later becomes `data/menu.json`.

@@ -15,6 +15,7 @@
 | Version | Date | Author | Changes |
 |---|---|---|---|
 | 1.0 | 2026-10-01 | binn1p | Initial baseline from the approved proposal and the requirement decisions of Oct 1. |
+| 1.1 | 2026-10-04 | binn1p | Removed FR-34 (kiosk lockout after wrong PINs). |
 
 ---
 
@@ -161,7 +162,7 @@ Priority uses MoSCoW. "Week" is the planned delivery week.
 | FR-31 | A valid PIN of an approved staff member shall record a clock-in if they are clocked out, or a clock-out if they are clocked in. | Must | 3 |
 | FR-32 | The time of every punch shall come from the server clock; any time sent by the browser is ignored. | Must | 3 |
 | FR-33 | The kiosk shall confirm each punch with the staff member's first name, the action and the time. | Must | 3 |
-| FR-34 | After 5 consecutive wrong PINs, the kiosk shall refuse PIN entry for 5 minutes. | Must | 3 |
+| ~~FR-34~~ | ~~After 5 consecutive wrong PINs, the kiosk shall refuse PIN entry for 5 minutes.~~ Removed 2026-10-04: a wrong PIN only shows a message. | — | — |
 
 ### 3.5 Staff page (login as staff)
 
