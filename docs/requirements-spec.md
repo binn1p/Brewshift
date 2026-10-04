@@ -18,6 +18,7 @@
 | 1.1 | 2026-10-04 | binn1p | Removed FR-34 (kiosk lockout after wrong PINs). |
 | 1.2 | 2026-10-04 | binn1p | Kiosk flow: PIN → welcome → personal staff page with a Clock in/out button (FR-30, FR-31, FR-33). |
 | 1.3 | 2026-10-04 | binn1p | Added FR-45 (walk-in counter orders, Should); FR-30 now an on-screen 0–9 keypad. |
+| 1.4 | 2026-10-04 | binn1p | English/French switch on every page (English by default); French removed from out of scope. |
 
 ---
 
@@ -321,7 +322,7 @@ Prices are stored in cents to avoid rounding errors.
 | Several cafés in one deployment | Each café gets its own deployment (A-2). |
 | Chart of orders per hour vs. staff on shift | Replaced by CSV export (FR-57) for external analysis. |
 | Drag-and-drop shift scheduling | Beyond the course scope. |
-| Vietnamese and French interface | Planned after version 1 (NFR-U5 prepares for it). |
+| Vietnamese interface | Planned after version 1 (NFR-U5 prepares for it). French was added in v1.4. |
 | Customer accounts and order history | Not needed for pickup ordering. |
 
 ---

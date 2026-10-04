@@ -23,7 +23,7 @@ It is a **generic café management product**: online pickup ordering plus a staf
 
 ## Key requirements
 
-- UI in **English** first.
+- UI in **English** by default, with an **EN | FR** switch at the top right of every page (added 2026-10-04): `public/js/i18n.js` holds the strings (`STRINGS`, `t()`, `tr()` for `{en, fr}` data, `data-i18n` attributes in HTML); choice saved in `localStorage` `brewshift-lang`; switching reloads the page. French uses Québec conventions (6,00 $, TPS/TVQ, 14 h). New text must be added in both languages.
 - Customers order **without an account** (name + phone) and get a confirmation page with an **order code** and **live status**.
 - Staff **self-register**; the owner **approves** them.
 - Staff **clock in/out** with a personal **6-digit PIN** on a shared counter iPad (kiosk).
