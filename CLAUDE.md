@@ -84,8 +84,8 @@ Hosting: **Render**.
 
 ## Menu (minh)
 
-- Menu (2026-10-01): 13 Vietnamese coffee drinks, prices in CAD (5–9). Full list in `docs/menu.md`; later becomes `data/menu.json`.
-- Drink images (2026-10-03): one original SVG illustration per drink in `public/images/menu/` (English kebab-case names, e.g. `iced-milk-coffee.svg`), same 3/4 overhead angle, transparent background, retro style matching `bean.svg`; list in that folder's `README.md`. For a white "photo canvas" menu page; click-to-open drink popup with quantity comes in week 2 (JavaScript).
+- Menu (updated 2026-10-04): 7 simple Vietnamese coffees, CAD 6–8: iced/hot black coffee, iced/hot milk coffee, orange coffee, coconut coffee, egg coffee. Full list in `docs/menu.md`; later becomes `data/menu.json`.
+- Drink illustrations: an SVG set was tried on 2026-10-03, then removed; no drink images for now.
 
 ## Keeping this file up to date
 
