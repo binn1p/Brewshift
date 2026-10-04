@@ -50,6 +50,16 @@ This journal records, day by day, what was built, what was learned, and what got
 
 ## Entries
 
+### Day 4 — Sunday, October 4, 2026 (~_ h)
+
+- **Goal:** Finish the customer side of the front end.
+- **Done:** Cut the menu to 7 drinks and added real drink photos; removed drink backgrounds with macOS Vision; built the canvas menu page from my sketch (drinks at chosen spots, hover zoom, phone zig-zag); drink window with photo/ingredients/story and press-down customize boxes with icons (milk, sugar %, ice %, note, quantity); 2-for-1 promo with struck-through prices; bag with icon chips, Edit, subtotal + GST/QST + total, required pickup name and phone; menu snapshot polaroid on the home Menu tile; egg coffee on the seasonal tile; About page; all cards the same size; split JS into small files.
+- **Learned:** _(fill in yourself)_
+- **Problem:** A photo URL set from JS inside a CSS variable loaded from the wrong folder → used a full URL built with `new URL(...)`; menu snapshot text clashed with the tile title → showed it as a small tilted polaroid instead.
+- **Commits:** `8ba36ea` docs: cut menu to 7 drinks; `28b286c` feat: egg coffee as the seasonal tile, 7-drink menu copy; `e30c359` docs: note menu photos, fill in my journal reflections; `d9488a5` feat: add menu drink photos; `193e873` feat: canvas menu, drink window with customize and edit, promo, taxed cart with pickup name and phone, about page
+- **AI used:** yes — background removal script, canvas menu, drink window, cart edit/tax/pickup form, About page (log #9–#11)
+- **Next:** Staff/owner side screens (login, register, kiosk, staff page, owner dashboard), then the Node + Express back end.
+
 ### Day 3 — Saturday, October 3, 2026 (~_ h)
 
 - **Goal:** Start a second home page design (idea 2) on its own branch, beginning with a loading screen.
@@ -98,3 +108,6 @@ The final report must include 3 to 5 examples of how AI was used. Record them he
 | 6 | Oct 3 | Make branch idea 2, starting with a dark loading screen with the logo and falling coffee beans. | `idea-2` branch with preloader HTML, CSS bean shapes/animations, JS that spawns random beans and fades the screen out. | decided to go with this one idea |
 | 7 | Oct 3 | Build the home page from my hand-drawn sketch (bento tiles, L-shaped seasonal tile, photos), then make the L one photo, round all corners, add hover zoom and match photo colors. | CSS Grid layout, JS that computes a rounded L `clip-path` from the grid sizes, shared CSS color-grade layer. | trying different dynamic shape |
 | 8 | Oct 3 | Add coffee-bean decor, a draggable coffee-bean cart button on every page that opens a cart window, and make the bean look retro. | `cart.js` (drag vs click, saved position, `<dialog>` with blurred backdrop, localStorage cart), `DECOR` list for seasonal decor, retro `bean.svg`. | make one element that exist in all page |
+| 9 | Oct 4 | Turn my canvas sketch into a menu page using the side photos with the backgrounds removed. | Swift script using macOS Vision to cut out the drinks; menu page placing them at % spots with names/prices; phone zig-zag layout. | _(fill in yourself)_ |
+| 10 | Oct 4 | Click a drink → window with photo, ingredients, story and press-down customize boxes with icons; 2-for-1 promo; bag with chips, edit, taxes. | `drink-window.js`, `options.js` (icons, milk prices, GST/QST, `lineTotal`), updated `cart.js`. | _(fill in yourself)_ |
+| 11 | Oct 4 | Menu snapshot on the home page, About page in the same card size, required pickup name + phone in the bag. | Polaroid snapshot tile, `about.html` with random shop photo, name/phone form with validation. | _(fill in yourself)_ |

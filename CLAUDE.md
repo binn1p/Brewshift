@@ -78,9 +78,15 @@ Hosting: **Render**.
 - Photos: `public/images/backgrounds/` (Unsplash, credits in `CREDITS.md`), color-graded in CSS with one shared warm tint (`--grade`, `background-blend-mode: color`).
 - Coffee bean art: `public/images/bean.svg`, retro poster style (flat colors, ink outline, halftone dots, off-register brick-red shadow). Used for loading screen, decor and cart button.
 - Card background decor: beans scattered randomly; chosen by `<body data-decor="beans">` and the `DECOR` list in `main.js`, so seasonal sets (F1, maple leaves, snowflakes…) can be added later. Beans are the default.
-- Cart: `public/js/cart.js`, included on every page. A draggable coffee bean button (no icon, count badge only), fixed above everything, position remembered; clicking opens a `<dialog>` cart window that dims and blurs the page. Cart stored in `localStorage` (`brewshift-cart`).
-- Planned next: menu page where each item has a quantity control to add straight to the cart; clicking an item opens its own product page (ingredients, inspiration) that can also add to cart; both open a customize pop-up with an X to go back to the menu; About and Promo pages (designed later).
-- Login: customers can log in for loyalty points; the owner logging in goes to an owner monitor/dashboard (later).
+- Cart: `public/js/cart.js`, on every page. Draggable coffee bean button (count badge only), fixed above everything, position remembered; opens a `<dialog>` bag (blurred backdrop). Lines show qty, customize chips with icons, an Edit button (reopens the drink window with current choices, Save keeps you in the bag), promo prices (full price struck through + faded), subtotal, GST 5% + QST 9.975%, total. Required pickup name + phone (10 digits) before Checkout; payment comes later. Stored in `localStorage` (`brewshift-cart`, `brewshift-pickup-name`, `brewshift-pickup-phone`).
+- Menu page (`menu.html`, built 2026-10-04): a "canvas" — the drink side photos with backgrounds removed (`public/images/menu/cutout/*.png`, cut with macOS Vision) placed at hand-picked % spots (`spot` in `js/menu-data.js`), name/Vietnamese name/price beside each; hover scales up; phones get a zig-zag list. Clicking opens the drink window.
+- Drink window (`js/drink-window.js`): left = side photo, ingredients, story; right = press-down boxes (radio buttons) for milk (none/condensed/fresh/almond +0.75/oat +0.75/coconut +0.50), sugar 0–100%, ice 0–100% (iced drinks only), note, quantity, Add to bag. Boxes matching the drink's `recipe` start pressed. Only a light dim behind it.
+- Promo: Iced Coffee with Milk is "2 for 1" (`promo: {buy: 2, pay: 1}`; `lineTotal` in `js/options.js`). Home promo tile opens it with qty 2. Always on for now (the "weekdays 2–4 pm" check belongs on the server later).
+- Every page's cream card is the same size: `--row-1`/`--row-2` on `.card` drive the home grid, the menu canvas and the About grid.
+- Home tiles: Menu = espresso tile with a tilted polaroid of the menu (`images/backgrounds/menu-snapshot.jpg`, regenerate when the menu changes); seasonal = egg coffee top photo → `menu.html?drink=egg-coffee`; promo → `menu.html?drink=iced-milk-coffee&qty=2`; About → `about.html`.
+- About page (`about.html`): random shop photo each visit, founding story + rain quote, Visit us (address, hours, phone, email, social buttons — links are placeholders), Where we're going.
+- JS files: `decor.js` (every page), `home.js` (loading screen + L shapes), `options.js` (icons, milks, taxes, prices), `menu-data.js` (7 drinks), `cart.js`, `drink-window.js`, `menu.js`, `about.js`.
+- An earlier list-style menu/drink-page experiment is kept in `git stash` (not used).
 
 ## Menu (minh)
 
