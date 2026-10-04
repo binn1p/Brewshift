@@ -96,6 +96,19 @@ Hosting: **Render**.
 - Data: `js/store.js` is a temporary localStorage store (`brewshift-db-v1`) with `users`, `punches`, `shifts` (schedule for ALL staff, filtered per person), `votes`; demo data built around today. Pages only call its functions (`findUserByPin`, `togglePunch`, `getShifts`, `getWorkSessions`…) so week 2 can swap in server calls. Demo PINs are plain text (123456 Linh, 246810 Bao, 111222 Mai pending) — the server must keep bcrypt hashes and use server time.
 - Planned later: owner side to manage everyone's schedule (shifts), approve staff, weekly hours table, CSV export.
 - Kiosk has an on-screen 0–9 keypad (+ Clear, ⌫) for the iPad; the six boxes are display-only so the iPad keyboard never opens. Upright iPad (≤1000px): clock, code + keypad, poll stacked.
+
+## Manager side (built 2026-10-04, front end only)
+
+- Manager code **111111** (Kim Vo, demo) on the kiosk → welcome → `dashboard.html`. Managers clock in/out from the dashboard chip. `js/admin.js` guards every manager page (non-managers go back to the kiosk; 5 idle minutes → kiosk).
+- Dashboard (from the user's sketch, same cream card, hover zoom): two pairs of interlocking L tiles — Sales + Order log, Menu + Shifts — then Employees, Photos, Stock (split from Settings), Settings. L shapes come from `js/shapes.js` (`data-shape-grid` + `data-cut="cols rows"`), also used by the home page.
+- `sales.html`: day/week/month, totals (before tax, taxes, orders, average, drinks, lost), bar chart by hour/day, top drinks, CSV report + print.
+- `orders.html`: day/week/month log, status filter (received, in progress, ready, picked up, cancelled, not picked up, surplus), status editable, CSV + print.
+- `menu-admin.html`: on menu / sold out today / sold out until turned back on / hidden; edit or add drinks (photos upload or from library, EN/FR names, Vietnamese name, price, label, 2-for-1 promo, default choices, ingredients, story). New drinks (no `spot`) appear in a grid below the menu canvas.
+- `shifts.html`: weekly grid (morning/afternoon from opening hours), drag or tap-to-assign, free-time highlight, confirm to override availability or weekly limit, roster with hours vs limit, copy last week, week CSV, 2-week payroll CSV (actual punches), "Text schedules" opens the phone's Messages app per person (`sms:` link; real sending needs a paid SMS service).
+- `employees.html`: active/pending/inactive/all; name, birth date/age, phone, email, 6-digit code (unique), staff/manager, part/full-time, local/international, status, weekly availability. Limits from Settings: international 24 h, part-time 30 h, full-time 40 h.
+- `photos.html`: built-in photos + uploads (shrunk, stored in localStorage `brewshift-photos`; server later). `stock.html`: quantities with −/+, reorder level, "Low" badge, CSV. `settings.html`: shop info + hours + socials (About page), taxes (bag), hour limits, pay period start, seasonal/promo home tiles, loading time, decor, reset demo data.
+- Data: `js/store.js` now uses `brewshift-db-v2` with users (with details), punches, shifts, menu (seeded from `MENU_SEED`), orders (45 days of demo orders), stock, settings. Checkout now saves a real order and shows its code. Manager strings live in `js/i18n-admin.js`.
+
 - Idea noted, not built: walk-in counter orders (FR-45, Should) reusing menu + drink window + cart, same queue as online orders — only after all Must items.
 
 ## Menu (minh)

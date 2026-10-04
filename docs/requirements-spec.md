@@ -19,6 +19,7 @@
 | 1.2 | 2026-10-04 | binn1p | Kiosk flow: PIN → welcome → personal staff page with a Clock in/out button (FR-30, FR-31, FR-33). |
 | 1.3 | 2026-10-04 | binn1p | Added FR-45 (walk-in counter orders, Should); FR-30 now an on-screen 0–9 keypad. |
 | 1.4 | 2026-10-04 | binn1p | English/French switch on every page (English by default); French removed from out of scope. |
+| 1.5 | 2026-10-04 | binn1p | Front end for the manager side built from the user's sketch: managers sign in with their code on the kiosk; dashboard with sales (day/week/month + report), order log, menu manager (sold out, add/edit drinks), weekly shift builder with availability and hour-limit warnings, employees, photos, stock and settings. "Owner" in this document means any approved user with the manager role. Server-side rules (FR-15, FR-23, FR-32, FR-58) still to be done in weeks 2–4. |
 
 ---
 
