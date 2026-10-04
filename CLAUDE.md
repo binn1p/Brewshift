@@ -85,7 +85,8 @@ Hosting: **Render**.
 ## Menu (minh)
 
 - Menu (updated 2026-10-04): 7 simple Vietnamese coffees, CAD 6–8: iced/hot black coffee, iced/hot milk coffee, orange coffee, coconut coffee, egg coffee. Full list in `docs/menu.md`; later becomes `data/menu.json`.
-- Drink illustrations: an SVG set was tried on 2026-10-03, then removed; no drink images for now.
+- Drink illustrations: an SVG set was tried on 2026-10-03, then removed.
+- Drink photos (2026-10-04): real Unsplash photos in `public/images/menu/`, 2 per drink: `<drink>-top.jpg` (angled top-down, for the white menu canvas; click opens product info) and `<drink>-side.jpg` (side view). Names: iced-black-coffee, hot-black-coffee, iced-milk-coffee, hot-milk-coffee, orange-coffee, coconut-coffee, egg-coffee. Pre-graded in the file (warm faded retro, kept bright for product shots), credits in `CREDITS.md` there.
 
 ## Keeping this file up to date
 
