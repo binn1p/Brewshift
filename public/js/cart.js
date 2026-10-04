@@ -4,7 +4,7 @@ const CART_KEY = "brewshift-cart";
 const POSITION_KEY = "brewshift-cart-position";
 
 // The cart is saved in the browser (localStorage) as a list like
-// [{ name: "Salt Coffee", price: 8, qty: 2 }], so it survives page changes.
+// [{ name: "Egg Coffee", price: 8, qty: 2 }], so it survives page changes.
 function readCart() {
   try {
     return JSON.parse(localStorage.getItem(CART_KEY)) || [];
