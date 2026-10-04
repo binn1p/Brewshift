@@ -3,6 +3,7 @@
   --color-cream: #F3E6CF;
   --color-orange: #D2652D;
   --color-mustard: #E0A93B;
+  --color-brick: #A63A2A;
 
   /* Color grade: one warm tint laid over every photo so they all share a vibe.
      Raise or lower the last number (0 to 1) to make the tint stronger or weaker. */
@@ -92,6 +93,10 @@ body {
 
 .card {
   --gap: 16px;
+  /* Height of the area under the logo, shared by the home grid and the menu
+     canvas so every page's card is the same size */
+  --row-1: 380px;
+  --row-2: 190px;
   position: relative;
   max-width: 1320px;
   margin: 0 auto;
@@ -153,7 +158,7 @@ body {
 .bento {
   display: grid;
   grid-template-columns: 2fr 3fr 4fr 5fr;
-  grid-template-rows: 380px 190px;
+  grid-template-rows: var(--row-1) var(--row-2);
   gap: var(--gap);
 }
 
@@ -215,20 +220,28 @@ body {
 }
 
 .tile--menu {
-  --photo: url("../images/backgrounds/interior-1.jpg");
+  background: var(--color-espresso);
   grid-column: 1 / 3;
   grid-row: 1 / 3;
 }
 
-/* The bottom-right of the menu tile is cut away, so keep its link text up top */
-.tile--menu .tile__cta {
-  margin-top: 0;
+/* A small snapshot of the menu page, like a tilted polaroid
+   (regenerate images/backgrounds/menu-snapshot.jpg if the menu changes) */
+.tile__snapshot {
+  position: absolute;
+  top: 168px;
+  left: 24px;
+  width: calc(100% - 48px);
+  border: 6px solid var(--color-cream);
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 var(--color-brick);
+  transform: rotate(-4deg);
 }
 
 /* --notch-w is set by main.js: how far the cut-away top-left corner reaches,
    so the text starts in the visible part of the L */
 .tile--seasonal {
-  --photo: url("../images/backgrounds/product-1.jpg");
+  --photo: url("../images/menu/egg-coffee-top.jpg");
   --shade: linear-gradient(rgba(58, 35, 24, 0.8), rgba(58, 35, 24, 0) 45%, rgba(58, 35, 24, 0) 70%, rgba(58, 35, 24, 0.7));
   grid-column: 2 / 4;
   grid-row: 1 / 3;
@@ -283,6 +296,12 @@ body {
   .tile--seasonal {
     min-height: 360px;
   }
+
+  .tile__snapshot {
+    position: static;
+    width: 100%;
+    margin: 8px 0;
+  }
 }
 
 /* ---------- Cart button (on every page) ---------- */
@@ -336,40 +355,222 @@ body {
   display: none;
 }
 
-/* ---------- Cart window ---------- */
+/* Little jump when something is added to the bag */
+.cart-button.is-bumped {
+  animation: bump 0.45s ease;
+}
+
+@keyframes bump {
+  0%, 100% { transform: rotate(15deg) scale(1); }
+  40%      { transform: rotate(15deg) scale(1.3) translateY(-6px); }
+}
+
+/* ---------- Shared bits ---------- */
+
+/* Hidden on screen but still read by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.back-link {
+  justify-self: start;
+  font-family: "Oswald", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-espresso);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--color-orange);
+}
+
+.button {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 999px;
+  background: var(--color-orange);
+  color: var(--color-cream);
+  box-shadow: 3px 3px 0 var(--color-espresso);
+  font: 600 1rem "Be Vietnam Pro", sans-serif;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--color-espresso);
+  border-radius: 999px;
+  background: var(--color-cream);
+}
+
+.stepper button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: none;
+  color: var(--color-espresso);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.stepper span {
+  min-width: 22px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ---------- Menu canvas ---------- */
+
+/* One flat surface; each drink is placed with % positions from menu-data.js.
+   container-type lets sizes use "cqw" = 1% of the canvas width, so the whole
+   arrangement scales together with the card. */
+.menu-canvas {
+  position: relative;
+  z-index: 1;
+  container-type: inline-size;
+  height: calc(var(--row-1) + var(--gap) + var(--row-2));
+}
+
+.menu-drink {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-espresso);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+
+.menu-drink--label-left {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.menu-drink:hover,
+.menu-drink:focus-visible {
+  z-index: 2;
+  transform: scale(1.07);
+}
+
+.menu-drink:focus-visible {
+  outline: 3px dashed var(--color-orange);
+  outline-offset: 6px;
+}
+
+.menu-drink__photo {
+  width: calc(var(--w) * 1cqw);
+  height: auto;
+  filter: drop-shadow(6px 12px 10px rgba(58, 35, 24, 0.3));
+}
+
+.menu-drink__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 15cqw;
+}
+
+.menu-drink--label-left .menu-drink__text {
+  align-items: flex-end;
+}
+
+.menu-drink__tag {
+  align-self: inherit;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-brick);
+  color: var(--color-cream);
+  font-size: clamp(0.65rem, 0.9cqw, 0.8rem);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.menu-drink__name {
+  font-family: "Oswald", sans-serif;
+  font-size: clamp(1rem, 1.7cqw, 1.6rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.menu-drink__vi {
+  font-style: italic;
+  color: var(--color-orange);
+  font-size: clamp(0.8rem, 1.1cqw, 1rem);
+}
+
+.menu-drink__price {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 1px 10px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 999px;
+  background: var(--color-mustard);
+  font-weight: 600;
+}
+
+/* ---------- Pop-up windows ---------- */
 
 /* <dialog> opened with showModal() sits above the whole page;
-   ::backdrop is the layer behind it that dims and blurs the site. */
-.cart-window {
-  width: min(92vw, 440px);
-  max-height: 80vh;
+   ::backdrop is the layer behind it. */
+.window {
+  width: min(92vw, 460px);
+  max-height: 88vh;
   padding: 24px;
-  border: 0;
+  border: 3px solid var(--color-espresso);
   border-radius: 28px;
   background: var(--color-cream);
   color: var(--color-espresso);
-  font-family: "Be Vietnam Pro", sans-serif;
+  box-shadow: 8px 8px 0 var(--color-brick);
 }
 
-.cart-window::backdrop {
+.window::backdrop {
   background: rgba(58, 35, 24, 0.55);
   backdrop-filter: blur(6px);
 }
 
-.cart-window__header {
+.window__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
-.cart-window__header h2 {
+.window__header h2 {
   margin: 0;
   font-family: "Oswald", sans-serif;
   text-transform: uppercase;
 }
 
-.cart-window__close {
+.window__close {
+  flex-shrink: 0;
   width: 40px;
   height: 40px;
   border: 0;
@@ -381,45 +582,506 @@ body {
   cursor: pointer;
 }
 
+/* ---------- Cart window ---------- */
+
+.cart-window {
+  width: min(92vw, 520px);
+}
+
 .cart-window__items {
-  margin: 0;
+  margin: 16px 0 0;
   padding: 0;
   list-style: none;
 }
 
-.cart-window__items li {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
+.cart-line {
+  padding: 12px 0;
   border-bottom: 1px solid rgba(58, 35, 24, 0.15);
 }
 
-.cart-window__total {
+.cart-line__top {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.cart-line__price {
+  min-width: 60px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.cart-line__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 4px;
+  border: 1.5px solid var(--color-espresso);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chip svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cart-window__sums {
+  margin: 16px 0;
+}
+
+.cart-window__sum {
   display: flex;
   justify-content: space-between;
-  margin: 16px 0;
+  margin: 4px 0;
+}
+
+.cart-window__sum--total {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px solid var(--color-espresso);
   font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .cart-window__empty {
   margin: 8px 0 20px;
 }
 
-.cart-window__action {
+/* ---------- Drink window ---------- */
+
+.drink-window {
+  position: relative;
+  width: min(94vw, 1040px);
+  padding: 32px;
+}
+
+/* Only a light dim behind this one, so the menu canvas stays visible */
+.drink-window::backdrop {
+  background: rgba(30, 18, 12, 0.35);
+  backdrop-filter: none;
+}
+
+.drink-window__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.drink-window__grid {
+  display: grid;
+  grid-template-columns: 5fr 6fr;
+  gap: 32px;
+}
+
+.drink-window__photo {
   display: block;
   width: 100%;
-  padding: 12px;
-  border: 0;
+  max-height: 380px;
+  object-fit: cover;
+  border: 3px solid var(--color-espresso);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--color-brick);
+}
+
+.drink-window__left h3 {
+  margin: 24px 0 8px;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.drink-window__ingredients {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.drink-window__story {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.drink-window__tag {
+  display: inline-block;
+  padding: 2px 10px;
   border-radius: 999px;
-  background: var(--color-orange);
+  background: var(--color-brick);
   color: var(--color-cream);
-  font: 600 1rem "Be Vietnam Pro", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.drink-window__name {
+  margin: 8px 48px 0 0;
+  font-family: "Oswald", sans-serif;
+  font-size: 2.2rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.drink-window__vi {
+  margin: 4px 0 20px;
+  font-style: italic;
+  color: var(--color-orange);
+}
+
+.boxes {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.boxes legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.boxes__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 10px;
+}
+
+/* The real radio button is invisible but still works with keyboards and
+   screen readers; the face next to it is what people see and press. */
+.box input {
+  position: absolute;
+  opacity: 0;
+}
+
+.box__face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  padding: 10px 6px 8px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 14px;
+  background: var(--color-cream);
+  box-shadow: 4px 4px 0 var(--color-espresso);
+  font-size: 0.75rem;
+  line-height: 1.15;
   text-align: center;
-  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
+}
+
+.box__face svg {
+  width: 30px;
+  height: 30px;
+}
+
+.box__extra {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+/* Picked = pressed down into the page */
+.box input:checked + .box__face {
+  transform: translate(4px, 4px);
+  box-shadow: inset 2px 2px 0 rgba(58, 35, 24, 0.3);
+  background: var(--color-mustard);
+}
+
+.box input:focus-visible + .box__face {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 3px;
+}
+
+.drink-window__note {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.drink-window__note > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.drink-window__note svg {
+  width: 20px;
+  height: 20px;
+}
+
+.drink-window__note textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 12px;
+  background: #FFFDF7;
+  color: var(--color-espresso);
+  font: inherit;
+  resize: vertical;
+}
+
+.drink-window__qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+/* ---------- Phones: menu becomes a zig-zag list, windows one column ---------- */
+
+@media (max-width: 800px) {
+  .menu-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    height: auto;
+    padding: 8px 0 24px;
+  }
+
+  .menu-drink {
+    position: static;
+    gap: 16px;
+  }
+
+  .menu-drink:nth-of-type(even) {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+
+  .menu-drink:nth-of-type(odd) {
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .menu-drink:nth-of-type(even) .menu-drink__text {
+    align-items: flex-end;
+  }
+
+  .menu-drink:nth-of-type(odd) .menu-drink__text {
+    align-items: flex-start;
+  }
+
+  .menu-drink__photo {
+    width: auto;
+    max-width: 45%;
+    height: 170px;
+    object-fit: contain;
+  }
+
+  .menu-drink__text {
+    max-width: none;
+  }
+
+  .drink-window {
+    padding: 20px;
+  }
+
+  .drink-window__grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .drink-window__photo {
+    max-height: 240px;
+  }
+}
+
+/* ---------- Promo prices ---------- */
+
+/* Full price crossed out and faded, the promo price next to it */
+.price-was {
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+.price-now {
+  font-weight: 600;
+}
+
+.drink-window__promo {
+  margin: 0 0 12px;
+  color: var(--color-brick);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.cart-line__price {
+  white-space: nowrap;
+}
+
+.cart-line__edit {
+  padding: 2px 12px;
+  border: 1.5px solid var(--color-orange);
+  border-radius: 999px;
+  background: none;
+  color: var(--color-orange);
+  font: 600 0.8rem "Be Vietnam Pro", sans-serif;
   cursor: pointer;
 }
 
-.cart-window__action:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.cart-line__edit:hover {
+  background: var(--color-orange);
+  color: var(--color-cream);
+}
+
+/* ---------- About page ---------- */
+
+/* Same height as the home grid and the menu canvas */
+.about {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 4fr 5fr 4fr;
+  grid-template-rows: var(--row-1) var(--row-2);
+  gap: var(--gap);
+}
+
+.about__photo {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  justify-content: flex-end;
+  margin: 0;
+  --shade: linear-gradient(rgba(58, 35, 24, 0) 60%, rgba(58, 35, 24, 0.6));
+}
+
+.panel {
+  padding: 24px 28px;
+  overflow: auto;
+  border: 3px solid var(--color-espresso);
+  border-radius: 28px;
+  background: var(--color-cream);
+  box-shadow: 6px 6px 0 var(--color-brick);
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.panel p {
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.about__story {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+
+.about__story blockquote {
+  margin: 16px 0 0;
+  padding-left: 16px;
+  border-left: 4px solid var(--color-orange);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.about__visit {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.about__visit address {
+  font-style: normal;
+}
+
+.about__visit a {
+  color: var(--color-espresso);
+}
+
+.about__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about__socials a {
+  display: inline-block;
+  padding: 4px 14px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 999px;
+  background: var(--color-mustard);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.about__vision {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+@media (max-width: 800px) {
+  .about {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .about > * {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .about__photo {
+    min-height: 280px;
+  }
+}
+
+/* ---------- Pickup name (cart) ---------- */
+
+.pickup {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.pickup > span {
+  display: block;
+  margin-bottom: 6px;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.pickup__required {
+  color: var(--color-brick);
+}
+
+.pickup input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 12px;
+  background: #FFFDF7;
+  color: var(--color-espresso);
+  font: inherit;
+}
+
+/* Red border only after the customer has tried and left it empty */
+.pickup input:user-invalid {
+  border-color: var(--color-brick);
+  outline: 2px solid var(--color-brick);
+}
+
+.cart-window__notice {
+  margin: 10px 0 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cart-window__notice:empty {
+  display: none;
 }

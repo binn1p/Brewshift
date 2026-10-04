@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/decor.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/cart.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/drink-window.js" defer></script>
+  <script src="js/about.js" defer></script>
+</head>
+<body data-decor="beans">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="index.html">&larr; Home</a>
+      <a class="logo-link" href="index.html"><img class="logo" src="images/minh-4-saloon-light.svg" alt="minh, back to home"></a>
+      <a class="login-link" href="login.html">Log In</a>
+    </header>
+
+    <main class="about">
+      <h1 class="visually-hidden">About minh</h1>
+
+      <!-- about.js picks a random photo of the shop on every visit -->
+      <figure class="tile about__photo" id="about-photo">
+        <figcaption class="tile__label" id="about-caption"></figcaption>
+      </figure>
+
+      <section class="panel about__story">
+        <h2>How minh started</h2>
+        <p>minh started with one phin filter in a tiny Montreal apartment. Missing the slow mornings back home, we brewed Vietnamese coffee for friends every weekend, until the line at our door was longer than our kitchen.</p>
+        <p>So in 2026 we opened a small shop on Saint-Laurent to share the same thing: strong coffee, dripped slowly, with time to sit and talk.</p>
+        <blockquote>After the rain, the red basalt soil breathes out that damp, earthy smell, the scent of a whole coffee garden just washed clean. minh grew out of that smell. Every cup brewed here carries a little of it back, slow and quiet, like walking through rain that just passed.</blockquote>
+      </section>
+
+      <section class="panel about__visit">
+        <h2>Visit us</h2>
+        <address>
+          <p><strong>123 Rue Saint-Laurent</strong><br>Montreal, QC H2X 2T3</p>
+          <p>Mon–Fri 7:00–18:00<br>Sat–Sun 8:00–17:00</p>
+          <p><a href="tel:+15145550142">(514) 555-0142</a><br><a href="mailto:hello@minhcafe.ca">hello@minhcafe.ca</a></p>
+        </address>
+        <ul class="about__socials">
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">TikTok</a></li>
+        </ul>
+      </section>
+
+      <section class="panel about__vision">
+        <h2>Where we're going</h2>
+        <p>To be the corner of Montreal that tastes like a Vietnamese morning, and to bring the phin to more neighbourhoods, one slow cup at a time.</p>
+      </section>
+    </main>
+
+  </div>
+
+</body>
+</html>

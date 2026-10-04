@@ -14,31 +14,6 @@ for (let i = 0; i < BEAN_COUNT; i++) {
   beanLayer.appendChild(bean);
 }
 
-// ---------- Background decoration ----------
-
-// <body data-decor="..."> picks the decoration. Each entry makes one piece;
-// seasonal ones (maple leaves, snowflakes, F1 cars...) can be added here later.
-const DECOR = {
-  beans: () => {
-    const bean = document.createElement("span");
-    bean.className = "bean";
-    return bean;
-  },
-};
-
-const decorLayer = document.querySelector(".decor");
-const makeDecor = DECOR[document.body.dataset.decor];
-if (decorLayer && makeDecor) {
-  for (let i = 0; i < 60; i++) {
-    const piece = makeDecor();
-    piece.style.left = Math.random() * 100 + "%";
-    piece.style.top = Math.random() * 100 + "%";
-    piece.style.setProperty("--size", 0.7 + Math.random() * 0.9);
-    piece.style.setProperty("--angle", Math.random() * 360 + "deg");
-    decorLayer.appendChild(piece);
-  }
-}
-
 // ---------- Loading screen fade-out ----------
 
 // Keep the loading screen up at least this long, so it doesn't just flash
