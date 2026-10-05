@@ -15,7 +15,7 @@
 // server will store only bcrypt hashes (FR-23) and check PINs itself.
 // Needs menu-data.js loaded first.
 
-const DB_KEY = "brewshift-db-v2";
+const DB_KEY = "brewshift-db-v3";
 const PHOTOS_KEY = "brewshift-photos";
 const SESSION_KEY = "brewshift-staff-id";
 
@@ -222,15 +222,19 @@ function buildDemoOrders(menu) {
       else if (roll > 0.88) status = "surplus";
       // Today's newest orders are still being made
       if (back === 0 && today - at < 40 * 60000) status = ["received", "in_progress", "ready"][Math.floor(random() * 3)];
+      const source = status === "surplus" ? "kitchen" : random() > 0.3 ? "online" : "counter";
       orders.push({
         id: `o_${key}_${i}`,
         code: orderCode(random),
         customerName: status === "surplus" ? "" : ["Alex", "Sam", "Jade", "Leo", "Maya", "Noah", "Chloé", "Hugo", "Anh", "Tuan"][Math.floor(random() * 10)],
         phone: status === "surplus" ? "" : `514555${String(1000 + Math.floor(random() * 8999))}`,
-        source: status === "surplus" ? "kitchen" : random() > 0.3 ? "online" : "counter",
+        source,
+        takenBy: source === "counter" ? ["u_linh", "u_bao", "u_vy"][Math.floor(random() * 3)] : null,
+        payment: source === "counter" ? (random() > 0.4 ? "card" : "cash") : null,
         lines,
         status,
         createdAt: at.toISOString(),
+        history: [],
       });
     }
   }
@@ -490,8 +494,10 @@ function orderTotal(order) {
   return orderSubtotal(order) * (1 + taxRate());
 }
 
-// Turn the bag into an order; returns the new order
-function addOrder(cart, customerName, phone) {
+// Turn the bag into an order; returns the new order.
+// extra: { source: "counter", takenBy: userId, payment: "cash" | "card" } for
+// orders taken at the counter. Online orders pay at pickup (payment: null).
+function addOrder(cart, customerName, phone, extra = {}) {
   const db = loadDb();
   const order = {
     id: newId("o"),
@@ -499,20 +505,47 @@ function addOrder(cart, customerName, phone) {
     customerName,
     phone: phone.replace(/\D/g, ""),
     source: "online",
+    takenBy: null,
+    payment: null,
     lines: cart.map((line) => ({ id: line.id, qty: line.qty, unitPrice: line.unitPrice, promo: line.promo || null, options: line.options })),
     status: "received",
     createdAt: new Date().toISOString(),
+    history: [],
+    ...extra,
   };
   db.orders.push(order);
   saveDb(db);
   return order;
 }
 
-function setOrderStatus(id, status) {
+function findOrder(id) {
+  return getOrders().find((order) => order.id === id) || null;
+}
+
+// Every change to a sent order is kept in its history, with who did it and
+// what it looked like before, so the order log can show it.
+function changeOrder(id, byUserId, action, changes) {
   const db = loadDb();
   const order = db.orders.find((o) => o.id === id);
-  if (order) order.status = status;
+  if (!order) return null;
+  const before = {};
+  Object.keys(changes).forEach((key) => { before[key] = order[key]; });
+  order.history = order.history || [];
+  order.history.push({ at: new Date().toISOString(), by: byUserId, action, before: JSON.parse(JSON.stringify(before)), after: JSON.parse(JSON.stringify(changes)) });
+  Object.assign(order, changes);
   saveDb(db);
+  return order;
+}
+
+function setOrderStatus(id, status, byUserId = null) {
+  return changeOrder(id, byUserId, "status", { status });
+}
+
+// A counter or online order counts as a sale once it is paid: counter orders
+// are paid when sent, online orders when picked up.
+function isPaid(order) {
+  if (["cancelled", "deleted", "no_show", "surplus"].includes(order.status)) return false;
+  return order.payment ? true : order.status === "picked_up";
 }
 
 // ---------- Stock ----------

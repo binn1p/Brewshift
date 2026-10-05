@@ -1,5 +1,5 @@
 // Sales for a day, week or month: totals, a bar chart, top drinks, and a CSV report.
-// Only picked-up orders count as sales (customers pay at pickup).
+// Paid orders count as sales: counter orders when sent, online orders at pickup.
 
 let current = null;
 
@@ -9,7 +9,7 @@ function drinkName(id) {
 
 function salesFor(range, kind) {
   const orders = ordersInRange(range.from, range.to);
-  const paid = orders.filter((order) => order.status === "picked_up");
+  const paid = orders.filter(isPaid);
   const lost = orders.filter((order) => order.status === "no_show" || order.status === "surplus");
   const revenue = paid.reduce((sum, order) => sum + orderSubtotal(order), 0);
   const lostValue = lost.reduce((sum, order) => sum + orderSubtotal(order), 0);
