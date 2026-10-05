@@ -20,6 +20,7 @@
 | 1.3 | 2026-10-04 | binn1p | Added FR-45 (walk-in counter orders, Should); FR-30 now an on-screen 0–9 keypad. |
 | 1.4 | 2026-10-04 | binn1p | English/French switch on every page (English by default); French removed from out of scope. |
 | 1.5 | 2026-10-04 | binn1p | Front end for the manager side built from the user's sketch: managers sign in with their code on the kiosk; dashboard with sales (day/week/month + report), order log, menu manager (sold out, add/edit drinks), weekly shift builder with availability and hour-limit warnings, employees, photos, stock and settings. "Owner" in this document means any approved user with the manager role. Server-side rules (FR-15, FR-23, FR-32, FR-58) still to be done in weeks 2–4. |
+| 1.6 | 2026-10-04 | binn1p | Vietnamese (VI) added to the kiosk, staff page and all manager pages; kiosk questions editable in Settings. |
 
 ---
 
@@ -323,7 +324,7 @@ Prices are stored in cents to avoid rounding errors.
 | Several cafés in one deployment | Each café gets its own deployment (A-2). |
 | Chart of orders per hour vs. staff on shift | Replaced by CSV export (FR-57) for external analysis. |
 | Drag-and-drop shift scheduling | Beyond the course scope. |
-| Vietnamese interface | Planned after version 1 (NFR-U5 prepares for it). French was added in v1.4. |
+| Vietnamese interface for customers | Planned after version 1. French was added in v1.4; staff and manager pages got Vietnamese in v1.6. |
 | Customer accounts and order history | Not needed for pickup ordering. |
 
 ---
