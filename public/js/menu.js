@@ -17,7 +17,7 @@ function drinkText(drink) {
 }
 
 function fillText(item, drink) {
-  item.querySelector(".menu-drink__name").textContent = tr(drink.name);
+  item.querySelector(".menu-drink__name").textContent = drinkName(drink);
   item.querySelector(".menu-drink__vi").textContent = drink.viName;
   item.querySelector(".menu-drink__price").textContent = money(drink.price);
   item.querySelector(".menu-drink__photo").src = drink.photo;

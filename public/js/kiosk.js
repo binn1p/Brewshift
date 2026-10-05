@@ -1,5 +1,5 @@
 // Shared counter iPad: live clock, 6-digit employee code, and a fun A/B question.
-// A correct code shows a welcome, then opens that person's staff page.
+// A correct code shows a welcome, then the choice page (hub.html).
 
 // ---------- Clock ----------
 
@@ -118,23 +118,14 @@ function checkPin(pin) {
 function welcome(user) {
   const first = user.name.split(" ")[0];
   const working = isClockedIn(user.id);
-  // Managers go to the dashboard (they clock in and out from there)
-  if (isManager(user)) {
-    document.getElementById("welcome-title").textContent = t("kiosk.welcomeManager", { name: first });
-    document.getElementById("welcome-text").textContent = t("kiosk.welcomeManagerText");
-    busy = true;
-    document.getElementById("welcome").showModal();
-    sessionStorage.setItem(SESSION_KEY, user.id);
-    setTimeout(() => { window.location.href = "dashboard.html"; }, 1800);
-    return;
-  }
   document.getElementById("welcome-title").textContent = t(working ? "kiosk.welcomeBack" : "kiosk.welcomeIn", { name: first });
   document.getElementById("welcome-text").textContent = t(working ? "kiosk.welcomeBackText" : "kiosk.welcomeInText");
   busy = true;
   document.getElementById("welcome").showModal();
 
   sessionStorage.setItem(SESSION_KEY, user.id);
-  setTimeout(() => { window.location.href = "staff.html"; }, 2200);
+  // Next: choose clock in/out, a counter order, or (managers) the dashboard
+  setTimeout(() => { window.location.href = "hub.html"; }, 1800);
 }
 
 // ---------- Weird question of the day ----------

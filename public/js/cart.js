@@ -2,7 +2,10 @@
 // Needs options.js loaded first (icons, milk names, taxes); the Edit button
 // also uses menu-data.js and drink-window.js.
 
-const CART_KEY = "brewshift-cart";
+// Counter mode (pos.html sets <body data-cart="pos">): the bag is the staff
+// member's ticket, kept apart from a customer's bag, with payment and printing.
+const POS_MODE = document.body.dataset.cart === "pos";
+const CART_KEY = POS_MODE ? "brewshift-pos-cart" : "brewshift-cart";
 const POSITION_KEY = "brewshift-cart-position";
 const NAME_KEY = "brewshift-pickup-name";
 const PHONE_KEY = "brewshift-pickup-phone";
@@ -61,15 +64,15 @@ function replaceCartLine(index, item) {
 const cartButton = document.createElement("button");
 cartButton.type = "button";
 cartButton.className = "cart-button";
-cartButton.setAttribute("aria-label", t("cart.open"));
+cartButton.setAttribute("aria-label", t(POS_MODE ? "pos.ticket" : "cart.open"));
 cartButton.innerHTML = `<span class="cart-button__count"></span>`;
 
 const cartWindow = document.createElement("dialog");
 cartWindow.className = "window cart-window";
-cartWindow.setAttribute("aria-label", t("cart.title"));
+cartWindow.setAttribute("aria-label", t(POS_MODE ? "pos.ticket" : "cart.title"));
 cartWindow.innerHTML = `
   <div class="window__header">
-    <h2>${t("cart.title")}</h2>
+    <h2>${t(POS_MODE ? "pos.ticket" : "cart.title")}</h2>
     <button type="button" class="window__close" aria-label="${t("common.close")}">&times;</button>
   </div>
   <div class="cart-window__body"></div>`;
@@ -95,8 +98,8 @@ function renderCart() {
   const body = cartWindow.querySelector(".cart-window__body");
   if (cart.length === 0) {
     body.innerHTML = `
-      <p class="cart-window__empty">${t("cart.empty")}</p>
-      <a class="button" href="menu.html">${t("cart.browse")}</a>`;
+      <p class="cart-window__empty">${t(POS_MODE ? "pos.empty" : "cart.empty")}</p>
+      ${POS_MODE ? "" : `<a class="button" href="menu.html">${t("cart.browse")}</a>`}`;
     return;
   }
 
@@ -112,7 +115,7 @@ function renderCart() {
       ${taxRows}
       <p class="cart-window__sum cart-window__sum--total"><span>${t("cart.total")}</span><span>${money(total)}</span></p>
     </div>
-    <form class="cart-window__checkout">
+    ${POS_MODE ? posCheckoutHTML() : `<form class="cart-window__checkout">
       <label class="pickup">
         <span>${t("cart.name")} <span class="pickup__required" aria-hidden="true">*</span></span>
         <input name="pickup" required maxlength="40" autocomplete="given-name" placeholder="${t("cart.namePlaceholder")}">
@@ -123,8 +126,21 @@ function renderCart() {
       </label>
       <button type="submit" class="button">${t("cart.checkout")}</button>
       <p class="cart-window__notice" role="status"></p>
-    </form>`;
+    </form>`}`;
 
+  if (POS_MODE) {
+    setupPosCheckout(body);
+  } else {
+    setupOnlineCheckout(body);
+  }
+
+  // textContent (not innerHTML) for saved text such as the note, so it is shown as plain text
+  showCartLines(body, cart);
+}
+
+// ---------- Online checkout (customers) ----------
+
+function setupOnlineCheckout(body) {
   // Name and phone are required: the browser blocks the submit and shows a
   // message while one is missing. Both are saved so they survive page changes.
   const checkout = body.querySelector(".cart-window__checkout");
@@ -164,8 +180,66 @@ function renderCart() {
     cartWindow.querySelector(".order-done__code").textContent = order.code;
     cartWindow.querySelector(".order-done__thanks").textContent = t("cart.placed", { name: order.customerName });
   });
+}
 
-  // textContent (not innerHTML) for saved text such as the note, so it is shown as plain text
+// ---------- Counter checkout (staff) ----------
+
+function posCheckoutHTML() {
+  return `
+    <form class="cart-window__checkout">
+      <label class="pickup">
+        <span>${t("pos.customer")} <span class="pickup__required" aria-hidden="true">*</span></span>
+        <input name="pickup" required maxlength="40" autocomplete="off" placeholder="${t("pos.customerPlaceholder")}">
+      </label>
+      <fieldset class="pay">
+        <legend>${t("pos.payment")} <span class="pickup__required" aria-hidden="true">*</span></legend>
+        <label class="pay__choice"><input type="radio" name="payment" value="cash" required><span>${t("payment.cash")}</span></label>
+        <label class="pay__choice"><input type="radio" name="payment" value="card"><span>${t("payment.card")}</span></label>
+      </fieldset>
+      <div class="pay__buttons">
+        <button type="button" class="button button--light" data-bill>${t("pos.printBill")}</button>
+        <button type="submit" class="button">${t("pos.send")}</button>
+      </div>
+    </form>`;
+}
+
+function setupPosCheckout(body) {
+  const checkout = body.querySelector(".cart-window__checkout");
+  checkout.querySelector("[data-bill]").addEventListener("click", () => {
+    printBill(readCart(), checkout.elements.pickup.value.trim());
+  });
+  checkout.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const pickup = checkout.elements.pickup;
+    if (!pickup.value.trim()) pickup.value = "";
+    if (!checkout.reportValidity()) return;
+    const order = addOrder(readCart(), pickup.value.trim(), "", {
+      source: "counter",
+      takenBy: sessionStorage.getItem(SESSION_KEY),
+      payment: checkout.elements.payment.value,
+    });
+    localStorage.removeItem(CART_KEY);
+    renderCart();
+    cartWindow.querySelector(".cart-window__body").innerHTML = `
+      <div class="order-done">
+        <p class="order-done__thanks"></p>
+        <p class="order-done__label">${t("cart.code")}</p>
+        <p class="order-done__code"></p>
+        <div class="pay__buttons">
+          <button type="button" class="button button--light" data-receipt>${t("pos.printReceipt")}</button>
+          <button type="button" class="button" data-new>${t("pos.newOrder")}</button>
+        </div>
+      </div>`;
+    cartWindow.querySelector(".order-done__code").textContent = order.code;
+    cartWindow.querySelector(".order-done__thanks").textContent = t("pos.sent", { name: order.customerName, payment: t(`payment.${order.payment}`) });
+    cartWindow.querySelector("[data-receipt]").addEventListener("click", () => printReceipt(order));
+    cartWindow.querySelector("[data-new]").addEventListener("click", () => cartWindow.close());
+  });
+}
+
+// ---------- Lines in the bag ----------
+
+function showCartLines(body, cart) {
   const list = body.querySelector(".cart-window__items");
   cart.forEach((item, index) => {
     const row = document.createElement("li");
@@ -183,7 +257,7 @@ function renderCart() {
       <div class="cart-line__chips"></div>`;
     // Show the drink name in the current language when the menu is on this page
     const drink = typeof findDrink === "function" ? findDrink(item.id) : null;
-    const name = drink ? tr(drink.name) : item.name;
+    const name = drink ? drinkName(drink) : item.name;
     row.querySelector("strong").textContent = name;
     row.querySelector(".stepper span").textContent = item.qty;
     row.querySelector(".cart-line__price").innerHTML = priceHTML(item.unitPrice, item.qty, item.promo);

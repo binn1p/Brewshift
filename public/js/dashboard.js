@@ -1,33 +1,13 @@
-// The manager's dashboard: a quick number on every tile, and the manager's
-// own clock in/out button at the top left.
+// The manager's dashboard: a quick number on every tile.
 
 const todayKey = dateKey(new Date());
-
-// ---------- Manager clock in/out ----------
-
-const clockChip = document.getElementById("manager-clock");
-
-function showClockChip() {
-  if (!manager) return;
-  const working = isClockedIn(manager.id);
-  const sessions = getWorkSessions(manager.id);
-  clockChip.textContent = working
-    ? `${t("admin.clockOut")} · ${t("admin.onSince", { time: clockTime(sessions[sessions.length - 1].start) })}`
-    : t("admin.clockIn");
-  clockChip.classList.toggle("is-working", working);
-}
-
-clockChip.addEventListener("click", () => {
-  togglePunch(manager.id);
-  showClockChip();
-});
 
 // ---------- Tile numbers ----------
 
 function showTiles() {
   // Sales today: picked-up orders only (payment happens at pickup)
   const today = getOrders().filter((order) => dateKey(new Date(order.createdAt)) === todayKey);
-  const paid = today.filter((order) => order.status === "picked_up");
+  const paid = today.filter(isPaid);
   const revenue = paid.reduce((sum, order) => sum + orderSubtotal(order), 0);
   document.getElementById("dash-sales").textContent = money(revenue);
   document.getElementById("dash-sales-note").textContent = t("dash.salesToday", { n: paid.length });
@@ -68,7 +48,6 @@ function showTiles() {
 }
 
 if (isManager(manager)) {
-  showClockChip();
   showTiles();
-  setInterval(() => { showClockChip(); showTiles(); }, 30000);
+  setInterval(showTiles, 30000);
 }

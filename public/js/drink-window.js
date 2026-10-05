@@ -34,7 +34,7 @@ function openDrinkWindow(drink, startQty = 1, edit = null) {
   const percent = (level) => (LANG === "fr" ? `${level} %` : `${level}%`);
   const levelChoices = (icon) => LEVELS.map((level) => ({ value: String(level), label: percent(level), icon }));
 
-  drinkWindow.setAttribute("aria-label", tr(drink.name));
+  drinkWindow.setAttribute("aria-label", drinkName(drink));
   drinkWindow.innerHTML = `
     <button type="button" class="window__close drink-window__close" aria-label="${t("common.close")}">&times;</button>
     <div class="drink-window__grid">
@@ -73,8 +73,8 @@ function openDrinkWindow(drink, startQty = 1, edit = null) {
       </form>
     </div>`;
 
-  drinkWindow.querySelector(".drink-window__photo").alt = tr(drink.name);
-  drinkWindow.querySelector(".drink-window__name").textContent = tr(drink.name);
+  drinkWindow.querySelector(".drink-window__photo").alt = drinkName(drink);
+  drinkWindow.querySelector(".drink-window__name").textContent = drinkName(drink);
   drinkWindow.querySelector(".drink-window__vi").textContent = t("dw.from", { vi: drink.viName, price: money(drink.price) });
   drinkWindow.querySelector(".drink-window__story").textContent = tr(drink.story);
   const list = drinkWindow.querySelector(".drink-window__ingredients");

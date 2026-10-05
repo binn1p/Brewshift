@@ -1590,11 +1590,12 @@ body {
     background: none;
   }
 
-  body > *:not(.print-log) {
+  /* Only on the staff page (the one that has the hour log) */
+  body:has(> .print-log):not(.is-printing-slip) > *:not(.print-log) {
     display: none !important;
   }
 
-  .print-log {
+  body:not(.is-printing-slip) .print-log {
     display: block;
     font-family: "Be Vietnam Pro", sans-serif;
   }
@@ -2919,5 +2920,239 @@ body {
 @media (max-width: 600px) {
   .questions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Start page (after the code) ---------- */
+
+.hub {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto calc(var(--row-1) + var(--row-2) - 60px);
+  gap: var(--gap);
+}
+
+.hub--manager {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.hub__hello {
+  grid-column: 1 / -1;
+  margin: 0;
+  font: 700 2.2rem "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.hub__tile {
+  justify-content: flex-end;
+}
+
+.hub__tile .tile__title {
+  font-size: 2.6rem;
+}
+
+.hub__tile .tile__cta {
+  margin-top: 8px;
+}
+
+.hub__clock {
+  background-color: var(--color-olive);
+}
+
+.hub__pos {
+  --photo: url("../images/backgrounds/product-3.jpg");
+  --shade: linear-gradient(rgba(58, 35, 24, 0), rgba(58, 35, 24, 0.75));
+  background-image: var(--shade), var(--grade), var(--photo);
+}
+
+.hub__manager {
+  background-color: var(--color-espresso);
+}
+
+.hub__manager[hidden] {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .hub,
+  .hub--manager {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .hub__tile {
+    min-height: 200px;
+  }
+}
+
+/* ---------- Counter orders ---------- */
+
+.pos__who {
+  position: relative;
+  z-index: 1;
+  margin: -8px 0 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.pay {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+.pay legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+}
+
+.pay__choice input {
+  position: absolute;
+  opacity: 0;
+}
+
+.pay__choice span {
+  display: block;
+  padding: 12px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--color-espresso);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.pay__choice input:checked + span {
+  background: var(--color-mustard);
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.pay__choice input:focus-visible + span {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+.pay__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.today {
+  width: min(94vw, 980px);
+}
+
+.today__actions {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Order log: deleted orders stay visible but faded, with their history */
+.orders-table tr.is-deleted td {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.orders-table tr.is-deleted td:nth-last-child(-n+2) {
+  text-decoration: none;
+}
+
+.order-history {
+  margin-top: 4px;
+  font-size: 0.78rem;
+}
+
+.order-history summary {
+  color: var(--color-brick);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.order-history ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
+/* ---------- Printed bill / receipt (stand-in for the receipt printer) ---------- */
+
+.receipt-print {
+  display: none;
+}
+
+@media print {
+  body.is-printing-slip > *:not(.receipt-print) {
+    display: none !important;
+  }
+
+  body.is-printing-slip {
+    padding: 0;
+    background: #FFFFFF;
+  }
+
+  body.is-printing-slip .receipt-print {
+    display: block;
+    width: 72mm;
+    margin: 0 auto;
+    color: #000000;
+    font: 11pt "Be Vietnam Pro", sans-serif;
+  }
+
+  .receipt-print p {
+    margin: 0 0 4px;
+    text-align: center;
+  }
+
+  .receipt__shop {
+    font: 700 18pt "Oswald", sans-serif;
+  }
+
+  .receipt__title {
+    margin-top: 8px !important;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .receipt__small {
+    font-size: 8.5pt;
+  }
+
+  .receipt-print table {
+    width: 100%;
+    margin-top: 8px;
+    border-collapse: collapse;
+  }
+
+  .receipt-print td:last-child {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .receipt__sums {
+    border-top: 1px dashed #000000;
+  }
+
+  .receipt__total td {
+    padding-top: 4px;
+    font-weight: 700;
+  }
+
+  .receipt__foot {
+    margin-top: 10px !important;
+  }
+}
+
+/* Printing: no full-screen height, so nothing spills onto a blank page */
+@media print {
+  body {
+    min-height: 0;
   }
 }

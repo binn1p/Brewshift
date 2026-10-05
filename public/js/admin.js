@@ -46,11 +46,7 @@ const hoursText = formatHours;
 const shortDate = formatShortDate;
 const longDate = formatLongDate;
 
-// In Vietnamese, drinks are shown by their Vietnamese name
-function drinkLabel(drink) {
-  if (!drink) return "";
-  return LANG === "vi" && drink.viName ? drink.viName : tr(drink.name);
-}
+const drinkLabel = drinkName;
 
 // ---------- Day / week / month periods (sales and order log) ----------
 

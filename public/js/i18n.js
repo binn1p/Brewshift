@@ -221,6 +221,12 @@ function tr(value) {
   return value;
 }
 
+// A drink's name in the current language; in Vietnamese, its Vietnamese name
+function drinkName(drink) {
+  if (!drink) return "";
+  return LANG === "vi" && drink.viName ? drink.viName : tr(drink.name);
+}
+
 function applyI18n(root = document) {
   root.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
