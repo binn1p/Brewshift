@@ -21,6 +21,7 @@
 | 1.4 | 2026-10-04 | binn1p | English/French switch on every page (English by default); French removed from out of scope. |
 | 1.5 | 2026-10-04 | binn1p | Front end for the manager side built from the user's sketch: managers sign in with their code on the kiosk; dashboard with sales (day/week/month + report), order log, menu manager (sold out, add/edit drinks), weekly shift builder with availability and hour-limit warnings, employees, photos, stock and settings. "Owner" in this document means any approved user with the manager role. Server-side rules (FR-15, FR-23, FR-32, FR-58) still to be done in weeks 2–4. |
 | 1.6 | 2026-10-04 | binn1p | Vietnamese (VI) added to the kiosk, staff page and all manager pages; kiosk questions editable in Settings. |
+| 1.7 | 2026-10-04 | binn1p | FR-45 built as a front end: after the PIN, a start page offers clock in/out, counter orders and (managers) the dashboard. Counter orders record who took them and cash/card payment; bill and receipt printing (browser print as a stand-in). Only managers edit or delete sent orders, and every change is kept in the order log. Refunds and card processing (Stripe) remain out of scope for now. |
 
 ---
 

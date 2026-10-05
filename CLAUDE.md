@@ -97,6 +97,15 @@ Hosting: **Render**.
 - Planned later: owner side to manage everyone's schedule (shifts), approve staff, weekly hours table, CSV export.
 - Kiosk has an on-screen 0–9 keypad (+ Clear, ⌫) for the iPad; the six boxes are display-only so the iPad keyboard never opens. Upright iPad (≤1000px): clock, code + keypad, poll stacked.
 
+## iPad flow and counter orders (built 2026-10-04)
+
+- The shared iPad opens on `kiosk.html` (code entry) by default. Any correct code → welcome → `hub.html` (same cream card): **Clock in / out** (`staff.html`), **Take an order** (`pos.html`), and for managers a **Manager** tile (`dashboard.html`). "Switch user" / idle → back to the kiosk. Staff page and dashboard have "← Back" to the hub; the dashboard no longer has its own clock chip.
+- `pos.html`: same menu canvas + drink window; the bag becomes the staff member's **ticket** (`<body data-cart="pos">`, separate storage `brewshift-pos-cart`): customer name (required), payment **cash / card** (required), **Print bill**, **Send order**, then **Print receipt**. Orders saved with `source: "counter"`, `takenBy` (who took it), `payment`.
+- Printing is a stand-in for the receipt printer: `window.print()` of a 72 mm receipt (`js/order-tools.js`, `body.is-printing-slip`).
+- Only managers can edit or delete a sent order ("Today's orders" on the counter page, or the order log). Every change goes into `order.history` (who, when, before/after); deleted orders stay in the log as status `deleted`. Order log shows Taken by, Payment, change history, receipt and edit buttons; status changes are logged too.
+- Sales count an order once paid: counter orders when sent, online orders at pickup (`isPaid`).
+- Later: refunds, Stripe card payments, a real receipt printer.
+
 ## Manager side (built 2026-10-04, front end only)
 
 - Manager code **111111** (Kim Vo, demo) on the kiosk → welcome → `dashboard.html`. Managers clock in/out from the dashboard chip. `js/admin.js` guards every manager page (non-managers go back to the kiosk; 5 idle minutes → kiosk).
