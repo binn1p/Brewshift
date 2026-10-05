@@ -146,8 +146,15 @@ Hosting: **Render**.
 - Keep the whole journal in **one-liner style** per the template in the file: each field is a single line, semicolon-separated for multiple items, so 31 days of entries don't balloon.
 - Like `CLAUDE.md`, Claude commits and pushes these factual journal updates itself, no confirmation needed.
 
-## Current plan (Week 1)
+## Current plan (Week 2, 5–11 Oct 2026)
 
-1. Requirements (done: `docs/requirements-spec.md`).
-2. Git and GitHub setup.
-3. Rough HTML/CSS UI by the end of the week.
+Front end is largely built on demo data (localStorage). No server yet. Week 2 moves the ordering side to the server:
+
+1. Mon: Express server skeleton in `src/`, `.env.example`, `/api/health`.
+2. Tue: `config/shop.json` read by the server (FR-01, FR-02).
+3. Wed: JSON storage layer with atomic writes; `data/menu.json`; `GET /api/menu` (FR-10).
+4. Thu: `POST /api/orders` with server-side totals and validation, random order codes (FR-13, FR-15, FR-16).
+5. Fri: `GET /api/orders/:code` without phone; confirmation page and cart use the server (FR-17, FR-19).
+6. Weekend: test (DevTools price change, empty order), journal, commits.
+
+Auth, PINs and roles (FR-20 to FR-25, FR-41, FR-58) move to Week 3.
