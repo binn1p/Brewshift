@@ -3,8 +3,6 @@
 
 // ---------- Clock ----------
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
 function ordinal(n) {
   if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
   return n + ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
@@ -12,7 +10,12 @@ function ordinal(n) {
 
 function showClock() {
   const now = new Date();
-  document.getElementById("kiosk-date").textContent = `${now.getFullYear()}, ${MONTHS[now.getMonth()]} ${ordinal(now.getDate())}`;
+  // "2026, Oct 4th" in English, "4 oct. 2026" in French, "4 tháng 10, 2026" in Vietnamese
+  const month = CALENDAR.months[now.getMonth()];
+  document.getElementById("kiosk-date").textContent =
+    LANG === "fr" ? `${now.getDate() === 1 ? "1er" : now.getDate()} ${month} ${now.getFullYear()}`
+    : LANG === "vi" ? formatLongDate(now)
+    : `${now.getFullYear()}, ${month} ${ordinal(now.getDate())}`;
   const hh = String(now.getHours()).padStart(2, "0");
   const mm = String(now.getMinutes()).padStart(2, "0");
   document.getElementById("kiosk-time").innerHTML = `${hh}<span class="kiosk__colon">:</span>${mm}`;
@@ -22,49 +25,67 @@ showClock();
 setInterval(showClock, 1000);
 
 // ---------- Employee code ----------
+// The iPad has no keyboard, so the code is typed on the on-screen keypad
+// (a computer keyboard works too). The six boxes only display progress.
 
 const PIN_LENGTH = 6;
 
-const pinForm = document.getElementById("pin-form");
+const pinRow = document.getElementById("pin");
 const message = document.getElementById("kiosk-message");
+const progress = document.getElementById("pin-progress");
+let code = "";
+let busy = false; // true while the welcome is showing
 
 for (let i = 0; i < PIN_LENGTH; i++) {
-  const box = document.createElement("input");
+  const box = document.createElement("span");
   box.className = "pin__box";
-  box.type = "password";
-  box.inputMode = "numeric";
-  box.maxLength = 1;
-  box.placeholder = " ";
-  box.setAttribute("aria-label", `Digit ${i + 1} of ${PIN_LENGTH}`);
-  pinForm.append(box);
+  pinRow.append(box);
 }
-const boxes = [...pinForm.querySelectorAll(".pin__box")];
-boxes[0].focus();
+const boxes = [...pinRow.querySelectorAll(".pin__box")];
+
+function showCode() {
+  boxes.forEach((box, i) => {
+    const filled = i < code.length;
+    box.classList.toggle("is-filled", filled);
+    box.textContent = filled ? "•" : "";
+  });
+  progress.textContent = t("kiosk.progress", { n: code.length });
+}
 
 function clearBoxes() {
-  boxes.forEach((box) => { box.value = ""; });
-  boxes[0].focus();
+  code = "";
+  showCode();
 }
 
-// Typing a digit jumps to the next box; Backspace on an empty box goes back
-boxes.forEach((box, i) => {
-  box.addEventListener("input", () => {
-    box.value = box.value.replace(/\D/g, "").slice(-1);
-    if (box.value && i < PIN_LENGTH - 1) boxes[i + 1].focus();
-    if (boxes.every((b) => b.value)) checkPin(boxes.map((b) => b.value).join(""));
-  });
-  box.addEventListener("keydown", (event) => {
-    if (event.key === "Backspace" && !box.value && i > 0) boxes[i - 1].focus();
-  });
-  // Pasting all six digits at once fills every box
-  box.addEventListener("paste", (event) => {
-    const digits = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, PIN_LENGTH);
-    if (digits.length !== PIN_LENGTH) return;
-    event.preventDefault();
-    boxes.forEach((b, j) => { b.value = digits[j]; });
-    checkPin(digits);
-  });
+function press(key) {
+  if (busy) return;
+  if (key === "back") {
+    code = code.slice(0, -1);
+  } else if (key === "clear") {
+    code = "";
+  } else if (code.length < PIN_LENGTH) {
+    code += key;
+    message.textContent = "";
+  }
+  showCode();
+  // A short pause so the last box can be seen filling before the check
+  if (code.length === PIN_LENGTH) {
+    const entered = code;
+    setTimeout(() => checkPin(entered), 150);
+  }
+}
+
+document.querySelectorAll(".keypad__key").forEach((key) => {
+  key.addEventListener("click", () => press(key.dataset.key));
 });
+
+document.addEventListener("keydown", (event) => {
+  if (/^[0-9]$/.test(event.key)) press(event.key);
+  else if (event.key === "Backspace") press("back");
+  else if (event.key === "Escape") press("clear");
+});
+
+showCode();
 
 function shake() {
   pinForm.classList.remove("is-wrong");
@@ -78,7 +99,7 @@ function checkPin(pin) {
   if (!user) {
     shake();
     clearBoxes();
-    message.textContent = "That code doesn't match. Please try again.";
+    message.textContent = t("kiosk.wrong");
     message.className = "kiosk__message is-error";
     return;
   }
@@ -86,7 +107,7 @@ function checkPin(pin) {
   if (user.status !== "approved") {
     shake();
     clearBoxes();
-    message.textContent = `Hi ${user.name.split(" ")[0]}, your account is waiting for the owner's approval.`;
+    message.textContent = t("kiosk.pending", { name: user.name.split(" ")[0] });
     message.className = "kiosk__message is-error";
     return;
   }
@@ -97,10 +118,19 @@ function checkPin(pin) {
 function welcome(user) {
   const first = user.name.split(" ")[0];
   const working = isClockedIn(user.id);
-  document.getElementById("welcome-title").textContent = working ? `Welcome back, ${first}!` : `Hi ${first}, welcome in!`;
-  document.getElementById("welcome-text").textContent = working
-    ? "Almost done? Your clock-out is one tap away."
-    : "Have a great shift. Make every cup a good one.";
+  // Managers go to the dashboard (they clock in and out from there)
+  if (isManager(user)) {
+    document.getElementById("welcome-title").textContent = t("kiosk.welcomeManager", { name: first });
+    document.getElementById("welcome-text").textContent = t("kiosk.welcomeManagerText");
+    busy = true;
+    document.getElementById("welcome").showModal();
+    sessionStorage.setItem(SESSION_KEY, user.id);
+    setTimeout(() => { window.location.href = "dashboard.html"; }, 1800);
+    return;
+  }
+  document.getElementById("welcome-title").textContent = t(working ? "kiosk.welcomeBack" : "kiosk.welcomeIn", { name: first });
+  document.getElementById("welcome-text").textContent = t(working ? "kiosk.welcomeBackText" : "kiosk.welcomeInText");
+  busy = true;
   document.getElementById("welcome").showModal();
 
   sessionStorage.setItem(SESSION_KEY, user.id);
@@ -109,20 +139,14 @@ function welcome(user) {
 
 // ---------- Weird question of the day ----------
 
-const QUESTIONS = [
-  { id: "q1", text: "Would you rather drink only iced coffee or only hot coffee forever?", a: "Only iced", b: "Only hot" },
-  { id: "q2", text: "Condensed milk or fresh milk?", a: "Condensed", b: "Fresh" },
-  { id: "q3", text: "Would you rather fight one horse-sized bean or a hundred bean-sized horses?", a: "One giant bean", b: "100 tiny horses" },
-  { id: "q4", text: "Is a hot dog a sandwich?", a: "Yes", b: "Absolutely not" },
-  { id: "q5", text: "Would you rather work the 7 am open or the 6 pm close?", a: "The open", b: "The close" },
-  { id: "q6", text: "Pineapple on pizza?", a: "Yes please", b: "Never" },
-  { id: "q7", text: "Would you rather have a rewind button or a pause button for your life?", a: "Rewind", b: "Pause" },
-];
+// The questions live in Settings (managers can add, edit or pin one)
+const QUESTIONS = getSettings().questions;
 
-// A new question each day, the same one all day long
+// A pinned question if a manager chose one, otherwise a new one each day
 const dayNumber = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
-const question = QUESTIONS[dayNumber % QUESTIONS.length];
-document.getElementById("question-text").textContent = question.text;
+const pinned = QUESTIONS.find((q) => q.id === getSettings().pinnedQuestion);
+const question = pinned || QUESTIONS[dayNumber % QUESTIONS.length];
+document.getElementById("question-text").textContent = tr(question.text);
 
 // Tally marks: every fifth vote strikes through the four before it
 function tallyHTML(count) {
@@ -133,19 +157,20 @@ function tallyHTML(count) {
 function showVotes(votes) {
   document.querySelectorAll(".kiosk__side").forEach((button) => {
     const side = button.dataset.side;
-    button.querySelector(".tally").innerHTML = tallyHTML(votes[side]);
-    button.setAttribute("aria-label", `${question[side]}: ${votes[side]} votes`);
+    button.querySelector(".tally").innerHTML = votes[side]
+      ? tallyHTML(votes[side])
+      : `<span class="tally__empty">${t("kiosk.noVotes")}</span>`;
+    button.setAttribute("aria-label", t("kiosk.votes", { answer: tr(question[side]), n: votes[side] }));
   });
 }
 
 document.querySelectorAll(".kiosk__side").forEach((button) => {
-  button.querySelector(".kiosk__answer").textContent = question[button.dataset.side];
+  button.querySelector(".kiosk__answer").textContent = tr(question[button.dataset.side]);
   button.addEventListener("click", () => {
     showVotes(addVote(question.id, button.dataset.side));
     button.classList.remove("is-voted");
     void button.offsetWidth;
     button.classList.add("is-voted");
-    boxes.find((box) => !box.value)?.focus();
   });
 });
 

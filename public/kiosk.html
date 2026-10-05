@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff kiosk — minh</title>
+  <title data-i18n="title.kiosk">Staff kiosk — minh</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
   <link rel="stylesheet" href="css/style.css">
-  <script src="js/decor.js" defer></script>
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
   <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
   <script src="js/kiosk.js" defer></script>
 </head>
-<body data-decor="beans">
+<body data-decor="beans" data-langs="en fr vi">
 
   <div class="card">
     <div class="decor" aria-hidden="true"></div>
@@ -20,7 +25,7 @@
     </header>
 
     <main class="kiosk">
-      <h1 class="visually-hidden">Staff kiosk</h1>
+      <h1 class="visually-hidden" data-i18n="kiosk.title">Staff kiosk</h1>
 
       <section class="kiosk__clock" aria-label="Current date and time">
         <p class="kiosk__date" id="kiosk-date"></p>
@@ -28,11 +33,25 @@
       </section>
 
       <section class="kiosk__code">
-        <h2 id="code-title">Employee code</h2>
-        <form class="pin" id="pin-form" aria-labelledby="code-title" autocomplete="off">
-          <!-- kiosk.js fills in six one-digit boxes -->
-        </form>
+        <h2 id="code-title" data-i18n="kiosk.code">Employee code</h2>
+        <!-- kiosk.js fills in six boxes that show how many digits are entered -->
+        <div class="pin" id="pin" aria-hidden="true"></div>
+        <p class="visually-hidden" id="pin-progress" aria-live="polite"></p>
         <p class="kiosk__message" id="kiosk-message" role="status"></p>
+        <div class="keypad" role="group" aria-label="Number keypad" data-i18n-attr="aria-label:kiosk.keypad">
+          <button type="button" class="keypad__key" data-key="1">1</button>
+          <button type="button" class="keypad__key" data-key="2">2</button>
+          <button type="button" class="keypad__key" data-key="3">3</button>
+          <button type="button" class="keypad__key" data-key="4">4</button>
+          <button type="button" class="keypad__key" data-key="5">5</button>
+          <button type="button" class="keypad__key" data-key="6">6</button>
+          <button type="button" class="keypad__key" data-key="7">7</button>
+          <button type="button" class="keypad__key" data-key="8">8</button>
+          <button type="button" class="keypad__key" data-key="9">9</button>
+          <button type="button" class="keypad__key keypad__key--small" data-key="clear" data-i18n="kiosk.clear">Clear</button>
+          <button type="button" class="keypad__key" data-key="0">0</button>
+          <button type="button" class="keypad__key keypad__key--small" data-key="back" aria-label="Delete last digit" data-i18n-attr="aria-label:kiosk.back">&#9003;</button>
+        </div>
       </section>
 
       <section class="panel kiosk__question" aria-labelledby="question-text">

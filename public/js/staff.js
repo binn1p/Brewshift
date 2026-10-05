@@ -5,24 +5,15 @@ const userId = sessionStorage.getItem(SESSION_KEY);
 const me = userId && getUser(userId);
 if (!me || me.status !== "approved") window.location.replace("kiosk.html");
 
-const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// Day and month words come from CALENDAR in i18n.js (English or French)
+const DAY_LETTERS = CALENDAR.letters;
 
 function clockTime(date) {
   return `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function hoursText(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
-  if (h === 0) return `${m}m`;
-  return m ? `${h}h ${m}m` : `${h}h`;
-}
-
-function shortDate(date) {
-  return `${DAY_NAMES[date.getDay()]}, ${MONTH_NAMES[date.getMonth()]} ${date.getDate()}`;
-}
+const hoursText = formatHours;
+const shortDate = formatShortDate;
 
 function shiftLength(shift) {
   return (atTime(shift.date, shift.end) - atTime(shift.date, shift.start)) / 60000;
@@ -38,16 +29,16 @@ function showMe() {
   const sessions = getWorkSessions(me.id);
   const current = sessions[sessions.length - 1];
   document.getElementById("staff-status").textContent = working
-    ? `On the clock since ${clockTime(current.start)}`
-    : "Off the clock";
+    ? t("staff.on", { time: clockTime(current.start) })
+    : t("staff.off");
   document.getElementById("staff-status").classList.toggle("is-working", working);
 
   const todayShift = getShifts(me.id).find((shift) => shift.date === dateKey(new Date()));
   document.getElementById("staff-today").textContent = todayShift
-    ? `Today's shift: ${todayShift.start}–${todayShift.end}`
-    : "No shift scheduled today";
+    ? t("staff.today", { start: todayShift.start, end: todayShift.end })
+    : t("staff.noToday");
 
-  punchButton.textContent = working ? "Clock out" : "Clock in";
+  punchButton.textContent = t(working ? "staff.clockOut" : "staff.clockIn");
   punchButton.classList.toggle("is-out", working);
 }
 
@@ -55,10 +46,11 @@ punchButton.addEventListener("click", () => {
   const punch = togglePunch(me.id);
   const at = clockTime(new Date(punch.at));
   if (punch.type === "in") {
-    toast.textContent = `Clocked in at ${at}. Have a great shift!`;
+    toast.textContent = t("staff.toastIn", { time: at });
   } else {
     const sessions = getWorkSessions(me.id);
-    toast.textContent = `Clocked out at ${at}. You worked ${hoursText((sessions[sessions.length - 1].end - sessions[sessions.length - 1].start) / 60000)}. Thanks!`;
+    const last = sessions[sessions.length - 1];
+    toast.textContent = t("staff.toastOut", { time: at, hours: hoursText((last.end - last.start) / 60000) });
   }
   showMe();
   showWeek();
@@ -95,8 +87,8 @@ function showWeek() {
 
   const end = addDays(weekStart, 6);
   document.getElementById("week-title").textContent =
-    `${MONTH_NAMES[weekStart.getMonth()]} ${weekStart.getDate()} – ${MONTH_NAMES[end.getMonth()]} ${end.getDate()}`;
-  document.getElementById("week-total").textContent = `Worked: ${hoursText(total)}`;
+    `${formatDayMonth(weekStart)} – ${formatDayMonth(end)}`;
+  document.getElementById("week-total").textContent = t("staff.worked", { hours: hoursText(total) });
 }
 
 document.getElementById("week-prev").addEventListener("click", () => { weekStart = addDays(weekStart, -7); showWeek(); });
@@ -108,7 +100,7 @@ function showNextShifts() {
   const now = new Date();
   const upcoming = getShifts(me.id).filter((shift) => atTime(shift.date, shift.end) > now).slice(0, 3);
   const list = document.getElementById("next-shifts");
-  list.innerHTML = upcoming.length ? "" : "<li>No upcoming shifts yet.</li>";
+  list.innerHTML = upcoming.length ? "" : `<li>${t("staff.noUpcoming")}</li>`;
   upcoming.forEach((shift) => {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${shortDate(atTime(shift.date, "00:00"))}</strong><span>${shift.start}–${shift.end} · ${hoursText(shiftLength(shift))}</span>`;
@@ -122,7 +114,7 @@ function logRows() {
   return getWorkSessions(me.id).map((session) => ({
     date: dateKey(session.start),
     in: clockTime(session.start),
-    out: session.running ? "(still clocked in)" : clockTime(session.end),
+    out: session.running ? t("staff.stillIn") : clockTime(session.end),
     minutes: (session.end - session.start) / 60000,
   }));
 }
@@ -133,7 +125,7 @@ function csvCell(value) {
 }
 
 document.getElementById("download").addEventListener("click", () => {
-  const lines = [["Name", "Date", "Clock in", "Clock out", "Hours"]];
+  const lines = [["staff.col.name", "staff.col.date", "staff.col.in", "staff.col.out", "staff.col.hours"].map((key) => t(key))];
   logRows().forEach((row) => lines.push([me.name, row.date, row.in, row.out, (row.minutes / 60).toFixed(2)]));
   const csv = lines.map((line) => line.map(csvCell).join(",")).join("\r\n");
   const link = document.createElement("a");
@@ -147,7 +139,7 @@ document.getElementById("print").addEventListener("click", () => {
   const from = dateKey(weekStart);
   const to = dateKey(addDays(weekStart, 6));
   const rows = logRows().filter((row) => row.date >= from && row.date <= to);
-  document.getElementById("print-title").textContent = `${me.name} — hours, ${document.getElementById("week-title").textContent}`;
+  document.getElementById("print-title").textContent = t("staff.printTitle", { name: me.name, week: document.getElementById("week-title").textContent });
   const body = document.getElementById("print-rows");
   body.innerHTML = "";
   rows.forEach((row) => {
@@ -159,7 +151,7 @@ document.getElementById("print").addEventListener("click", () => {
     });
     body.append(tr);
   });
-  document.getElementById("print-total").textContent = `Total: ${hoursText(rows.reduce((sum, row) => sum + row.minutes, 0))}`;
+  document.getElementById("print-total").textContent = t("staff.total", { hours: hoursText(rows.reduce((sum, row) => sum + row.minutes, 0)) });
   window.print();
 });
 
