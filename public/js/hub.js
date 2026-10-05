@@ -24,6 +24,7 @@ if (hubUser && hubUser.status === "approved") {
   document.getElementById("hub-clock-status").textContent = isClockedIn(hubUser.id)
     ? t("staff.on", { time: `${sessions.at(-1).start.getHours()}:${String(sessions.at(-1).start.getMinutes()).padStart(2, "0")}` })
     : t("staff.off");
+  document.getElementById("hub-queue-count").textContent = t("queue.count", { n: queueOrders().length });
   // Only managers see the Manager tile
   if (isManager(hubUser)) {
     document.getElementById("hub-manager").hidden = false;

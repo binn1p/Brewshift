@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.queue">Orders — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/order-tools.js" defer></script>
+  <script src="js/queue.js" defer></script>
+</head>
+<body data-decor="beans" data-langs="en fr vi">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="hub.html" data-i18n="nav.back">&larr; Back</a>
+      <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
+      <span class="login-link queue__count" id="queue-count"></span>
+    </header>
+
+    <main class="admin queue">
+      <h1 class="admin__title" data-i18n="queue.title">Current orders</h1>
+      <p class="admin__hint" data-i18n="queue.hint">Oldest first, or by pickup time for online orders. Finish an order when the customer has it.</p>
+      <div class="queue__grid" id="queue"></div>
+    </main>
+
+  </div>
+
+</body>
+</html>
