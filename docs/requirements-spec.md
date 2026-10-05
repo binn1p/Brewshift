@@ -22,6 +22,7 @@
 | 1.5 | 2026-10-04 | binn1p | Front end for the manager side built from the user's sketch: managers sign in with their code on the kiosk; dashboard with sales (day/week/month + report), order log, menu manager (sold out, add/edit drinks), weekly shift builder with availability and hour-limit warnings, employees, photos, stock and settings. "Owner" in this document means any approved user with the manager role. Server-side rules (FR-15, FR-23, FR-32, FR-58) still to be done in weeks 2–4. |
 | 1.6 | 2026-10-04 | binn1p | Vietnamese (VI) added to the kiosk, staff page and all manager pages; kiosk questions editable in Settings. |
 | 1.7 | 2026-10-04 | binn1p | FR-45 built as a front end: after the PIN, a start page offers clock in/out, counter orders and (managers) the dashboard. Counter orders record who took them and cash/card payment; bill and receipt printing (browser print as a stand-in). Only managers edit or delete sent orders, and every change is kept in the order log. Refunds and card processing (Stripe) remain out of scope for now. |
+| 1.8 | 2026-10-04 | binn1p | Cash keypad with change at the counter; current-orders board for all staff (Start → Ready → Finish, sorted by pickup time or arrival); optional pickup time on online orders; optional member accounts with points (earn per drink, spend at the counter, values set in Settings), account page with live order status and history. |
 
 ---
 
@@ -326,7 +327,7 @@ Prices are stored in cents to avoid rounding errors.
 | Chart of orders per hour vs. staff on shift | Replaced by CSV export (FR-57) for external analysis. |
 | Drag-and-drop shift scheduling | Beyond the course scope. |
 | Vietnamese interface for customers | Planned after version 1. French was added in v1.4; staff and manager pages got Vietnamese in v1.6. |
-| Customer accounts and order history | Not needed for pickup ordering. |
+| Customer accounts and order history | ~~Not needed for pickup ordering.~~ Added in v1.8 as optional member accounts (points); ordering still works without an account. |
 
 ---
 

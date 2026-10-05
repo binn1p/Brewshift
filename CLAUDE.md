@@ -104,7 +104,12 @@ Hosting: **Render**.
 - Printing is a stand-in for the receipt printer: `window.print()` of a 72 mm receipt (`js/order-tools.js`, `body.is-printing-slip`).
 - Only managers can edit or delete a sent order ("Today's orders" on the counter page, or the order log). Every change goes into `order.history` (who, when, before/after); deleted orders stay in the log as status `deleted`. Order log shows Taken by, Payment, change history, receipt and edit buttons; status changes are logged too.
 - Sales count an order once paid: counter orders when sent, online orders at pickup (`isPaid`).
-- Later: refunds, Stripe card payments, a real receipt printer.
+- Cash at the counter: register-style keypad for the amount handed over (1-2-5 → $1.25, plus $5/$10/$20/$50/Exact), shows change or how much is missing; Send is blocked while short. Order keeps `cashReceived` and `change`.
+- Hub has an **Orders** tile → `queue.html` (anyone with a code): open orders from counter and online, sorted by pickup time if given, else by time received; Start → Ready → Finish (finished orders leave the board); late orders flagged; refreshes every 15 s; changes logged with the person.
+- Online orders: optional **pickup time** (today, ≥ 5 min from now, before closing); empty = customer is at the café.
+- **Members** (`login.html`, `account.html`, customer side EN/FR): sign up with name, email, phone (10 digits, unique), password, promos opt-in; log in. Bag invites guests to log in/sign up but guests can still order; members get name/phone filled in and see points to earn. Account page: points and their value, current orders with a Received → Being made → Ready bar (auto-refresh), order history with points, details, promos toggle. Demo member: alex@example.com / coffee123 (DEMO ONLY: SHA-256 in the browser; server will use bcrypt).
+- Points: `pointsPerDrink` per drink (default 1) and `pointValue` dollars per point (default $1), set in Settings → Member points. Earned when paid (counter at send, online at pickup). At the counter: member phone lookup, "Use N points" takes them off before tax.
+- Later: refunds, Stripe card payments, a real receipt printer, sending promos.
 
 ## Manager side (built 2026-10-04, front end only)
 
