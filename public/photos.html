@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.photos">Photos — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/admin.js" defer></script>
+  <script src="js/photo-tools.js" defer></script>
+  <script src="js/photos.js" defer></script>
+</head>
+<body data-decor="beans" data-langs="en fr vi">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="dashboard.html" data-i18n="admin.back">&larr; Dashboard</a>
+      <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
+      <button type="button" class="login-link done-button" id="done" data-i18n="nav.done">Done</button>
+    </header>
+
+    <main class="admin photos">
+      <h1 class="admin__title" data-i18n="dash.photos">Photos</h1>
+      <div class="admin__bar">
+        <div class="chips" id="photo-filter" role="group"></div>
+        <label class="button button--small file-button">
+          <span data-i18n="photos.upload">+ Upload photos</span>
+          <input type="file" id="upload" accept="image/*" multiple>
+        </label>
+      </div>
+      <p class="admin__hint" data-i18n="photos.hint">Photos are made smaller and kept in this browser for now.</p>
+      <p class="admin__error" id="photo-error" role="alert"></p>
+      <div class="photo-grid" id="photo-grid"></div>
+    </main>
+
+  </div>
+
+</body>
+</html>

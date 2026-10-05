@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.menuAdmin">Menu — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/admin.js" defer></script>
+  <script src="js/photo-tools.js" defer></script>
+  <script src="js/menu-admin.js" defer></script>
+</head>
+<body data-decor="beans" data-langs="en fr vi">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="dashboard.html" data-i18n="admin.back">&larr; Dashboard</a>
+      <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
+      <button type="button" class="login-link done-button" id="done" data-i18n="nav.done">Done</button>
+    </header>
+
+    <main class="admin madmin">
+      <h1 class="admin__title" data-i18n="dash.menu">Menu</h1>
+      <div class="admin__bar">
+        <p class="admin__hint" data-i18n="madmin.newSpot">New drinks appear below the menu canvas.</p>
+        <button type="button" class="button button--small" id="add" data-i18n="madmin.add">+ Add a drink</button>
+      </div>
+      <div class="madmin__grid" id="drinks"></div>
+    </main>
+
+  </div>
+
+  <dialog class="window editor" id="editor"></dialog>
+  <dialog class="window picker" id="picker"></dialog>
+
+</body>
+</html>

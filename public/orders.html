@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.orders">Order log — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/admin.js" defer></script>
+  <script src="js/orders.js" defer></script>
+</head>
+<body data-decor="beans" data-langs="en fr vi">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="dashboard.html" data-i18n="admin.back">&larr; Dashboard</a>
+      <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
+      <button type="button" class="login-link done-button" id="done" data-i18n="nav.done">Done</button>
+    </header>
+
+    <main class="admin orders">
+      <h1 class="admin__title" data-i18n="dash.orders">Order log</h1>
+      <div class="admin__bar">
+        <div class="period" id="period">
+          <div class="segmented" role="group">
+            <button type="button" data-kind="day" data-i18n="admin.day">Day</button>
+            <button type="button" data-kind="week" data-i18n="admin.week">Week</button>
+            <button type="button" data-kind="month" data-i18n="admin.month">Month</button>
+          </div>
+          <button type="button" class="week-nav" data-step="-1" aria-label="Previous" data-i18n-attr="aria-label:admin.prev">&larr;</button>
+          <span class="period__label"></span>
+          <button type="button" class="week-nav" data-step="1" aria-label="Next" data-i18n-attr="aria-label:admin.next">&rarr;</button>
+        </div>
+        <div class="admin__actions">
+          <button type="button" class="button button--small" id="csv" data-i18n="admin.csv">Download CSV</button>
+          <button type="button" class="button button--small button--light" id="print" data-i18n="admin.print">Print</button>
+        </div>
+      </div>
+      <div class="chips" id="status-filter" role="group"></div>
+      <section class="panel admin__scroll">
+        <table class="admin-table orders-table" id="orders"></table>
+      </section>
+    </main>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.shifts">Shifts — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/admin.js" defer></script>
+  <script src="js/shifts.js" defer></script>
+</head>
+<body data-decor="beans" data-langs="en fr vi">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="dashboard.html" data-i18n="admin.back">&larr; Dashboard</a>
+      <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
+      <button type="button" class="login-link done-button" id="done" data-i18n="nav.done">Done</button>
+    </header>
+
+    <main class="admin shifts">
+      <h1 class="admin__title" data-i18n="dash.shifts">Shifts</h1>
+      <div class="admin__bar">
+        <div class="period">
+          <button type="button" class="week-nav" id="week-prev" aria-label="Previous" data-i18n-attr="aria-label:admin.prev">&larr;</button>
+          <span class="period__label" id="week-label"></span>
+          <button type="button" class="week-nav" id="week-next" aria-label="Next" data-i18n-attr="aria-label:admin.next">&rarr;</button>
+        </div>
+        <div class="admin__actions">
+          <button type="button" class="button button--small button--light" id="copy" data-i18n="shifts.copy">Copy last week</button>
+          <button type="button" class="button button--small button--light" id="export" data-i18n="shifts.export">Week (CSV)</button>
+          <button type="button" class="button button--small button--light" id="payroll" data-i18n="shifts.payroll">Payroll (2 weeks)</button>
+          <button type="button" class="button button--small" id="text" data-i18n="shifts.text">Text schedules</button>
+        </div>
+      </div>
+      <div class="scheduler">
+        <aside class="panel roster">
+          <h2 data-i18n="shifts.staff">Staff</h2>
+          <p class="admin__hint" id="roster-hint" data-i18n="shifts.hint">Drag a name onto a shift, or tap a name and then a shift.</p>
+          <ul class="roster__list" id="roster"></ul>
+        </aside>
+        <section class="panel schedule" id="schedule"></section>
+      </div>
+    </main>
+
+  </div>
+
+  <dialog class="window editor" id="editor"></dialog>
+
+</body>
+</html>

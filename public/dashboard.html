@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.dashboard">Dashboard — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/i18n-admin.js" defer></script>
+  <script src="js/i18n-vi.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/admin.js" defer></script>
+  <script src="js/shapes.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</head>
+<body data-decor="beans" data-langs="en fr vi">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <button type="button" class="clock-chip" id="manager-clock"></button>
+      <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
+      <button type="button" class="login-link done-button" id="done" data-i18n="nav.done">Done</button>
+    </header>
+
+    <!-- Two pairs of interlocking L-shaped tiles on top (shapes.js), five tiles below -->
+    <main class="dash" data-shape-grid>
+      <h1 class="visually-hidden" data-i18n="title.dashboard">Dashboard</h1>
+
+      <a class="tile dash__tile dash__sales" href="sales.html" data-cut="2/3 2/3">
+        <h2 class="tile__title" data-i18n="dash.sales">Sales</h2>
+        <p class="dash__big" id="dash-sales"></p>
+        <p id="dash-sales-note"></p>
+        <span class="tile__cta" data-i18n="dash.salesCta">Day · Week · Month →</span>
+      </a>
+
+      <a class="tile dash__tile dash__orders" href="orders.html" data-cut="2/3 1/2">
+        <h2 class="tile__title" data-i18n="dash.orders">Order log</h2>
+        <div class="dash__bottom">
+          <p class="dash__big" id="dash-orders"></p>
+          <p id="dash-orders-note"></p>
+        </div>
+      </a>
+
+      <a class="tile dash__tile dash__menu" href="menu-admin.html" data-cut="5/6 1/2">
+        <h2 class="tile__title" data-i18n="dash.menu">Menu</h2>
+        <div class="dash__bottom">
+          <p id="dash-menu"></p>
+          <span class="tile__cta" data-i18n="dash.menuCta">Drinks, prices, promos →</span>
+        </div>
+      </a>
+
+      <a class="tile dash__tile dash__shifts" href="shifts.html" data-cut="5/6 2/3">
+        <h2 class="tile__title" data-i18n="dash.shifts">Shifts</h2>
+        <p id="dash-shifts"></p>
+        <p class="dash__warn" id="dash-shifts-warn"></p>
+      </a>
+
+      <a class="tile dash__tile dash__employees" href="employees.html">
+        <h2 class="tile__title" data-i18n="dash.employees">Employees</h2>
+        <p id="dash-employees"></p>
+      </a>
+
+      <a class="tile dash__tile dash__photos" href="photos.html">
+        <h2 class="tile__title" data-i18n="dash.photos">Photos</h2>
+        <p id="dash-photos"></p>
+      </a>
+
+      <a class="tile dash__tile dash__stock" href="stock.html">
+        <h2 class="tile__title" data-i18n="dash.stock">Stock</h2>
+        <p id="dash-stock"></p>
+      </a>
+
+      <a class="tile dash__tile dash__settings" href="settings.html">
+        <h2 class="tile__title" data-i18n="dash.settings">Settings</h2>
+        <p data-i18n="dash.settingsText">Shop info, hours, taxes, home page</p>
+      </a>
+    </main>
+
+  </div>
+
+</body>
+</html>
