@@ -3156,3 +3156,366 @@ body {
     min-height: 0;
   }
 }
+
+/* ---------- Members box in the bag, member lookup at the counter ---------- */
+
+.member-box {
+  margin: 16px 0;
+  padding: 14px;
+  border: 2px dashed var(--color-orange);
+  border-radius: 16px;
+  background: rgba(224, 169, 59, 0.12);
+}
+
+.member-box p {
+  margin: 0 0 8px;
+}
+
+.member-box__line {
+  font-weight: 600;
+}
+
+.member-box__links {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.member-found {
+  margin: -6px 0 12px;
+  font-size: 0.9rem;
+}
+
+.member-found__name {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: var(--color-olive);
+}
+
+.pos-total {
+  margin-bottom: 12px;
+}
+
+/* Cash keypad: what the customer handed over, and the change to give back */
+.cash {
+  margin: -4px 0 14px;
+  padding: 12px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 16px;
+}
+
+.cash[hidden] {
+  display: none;
+}
+
+.cash__screen {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.cash__amount {
+  font: 700 1.8rem "Oswald", sans-serif;
+}
+
+.cash__quick,
+.cash__keys {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cash__quick {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.cash__keys {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.cash__quick button,
+.cash__keys button {
+  height: 44px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 12px;
+  background: var(--color-cream);
+  box-shadow: 3px 3px 0 var(--color-espresso);
+  color: var(--color-espresso);
+  font: 700 1.05rem "Oswald", sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.cash__quick button {
+  font-size: 0.9rem;
+}
+
+.cash__quick button:active,
+.cash__keys button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+  background: var(--color-mustard);
+}
+
+.cash__change {
+  margin: 4px 0 0;
+  font: 700 1.3rem "Oswald", sans-serif;
+  text-align: center;
+}
+
+.cash__change.is-ok {
+  color: var(--color-olive);
+}
+
+.cash__change.is-short {
+  color: var(--color-brick);
+}
+
+.order-done__change {
+  font: 700 1.4rem "Oswald", sans-serif;
+  color: var(--color-olive);
+}
+
+/* ---------- Start page: Orders tile ---------- */
+
+.hub {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.hub--manager {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.hub__queue {
+  background-color: var(--color-orange);
+}
+
+/* ---------- Current orders board ---------- */
+
+.queue__count {
+  font-weight: 700;
+}
+
+.queue__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.queue__empty {
+  grid-column: 1 / -1;
+  padding: 40px;
+  font: 600 1.4rem "Oswald", sans-serif;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.queue-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 3px solid var(--color-espresso);
+  border-radius: 22px;
+  background: var(--color-cream);
+  box-shadow: 5px 5px 0 var(--color-brick);
+  transition: transform 0.2s ease;
+}
+
+.queue-card:hover {
+  transform: scale(1.03);
+}
+
+.queue-card--in_progress {
+  background: #F7E7C2;
+}
+
+.queue-card--ready {
+  background: #DDE3C6;
+  box-shadow: 5px 5px 0 var(--color-olive);
+}
+
+.queue-card.is-late {
+  border-color: var(--color-brick);
+  border-style: dashed;
+}
+
+.queue-card__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-card__number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-espresso);
+  color: var(--color-cream);
+  font: 700 0.9rem "Oswald", sans-serif;
+}
+
+.queue-card__code {
+  flex: 1;
+  font: 700 1.5rem "Oswald", sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.queue-card p {
+  margin: 0;
+}
+
+.queue-card__name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.queue-card__when {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+.queue-card__items {
+  flex: 1;
+  margin: 6px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.queue-card__items li {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(58, 35, 24, 0.15);
+}
+
+.queue-card__items small {
+  opacity: 0.75;
+}
+
+.queue-card__status {
+  font-weight: 600;
+}
+
+.queue-card.is-late .queue-card__status {
+  color: var(--color-brick);
+}
+
+/* ---------- Members: log in and account ---------- */
+
+.login__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.login__box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease;
+}
+
+.login__box:hover,
+.account__grid > *:hover {
+  transform: scale(1.02);
+}
+
+.login__box h2 {
+  margin: 0;
+}
+
+.account__grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+}
+
+.account__grid > * {
+  transition: transform 0.2s ease;
+}
+
+.account__points {
+  justify-content: center;
+  min-height: 220px;
+  background-color: var(--color-orange);
+}
+
+.account__big {
+  margin: 0;
+  font: 700 4.5rem "Oswald", sans-serif;
+  line-height: 1;
+}
+
+.account__history {
+  grid-column: 1 / -1;
+}
+
+.account__profile p {
+  margin: 0 0 10px;
+}
+
+.order-track {
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 2px solid var(--color-espresso);
+  border-radius: 16px;
+}
+
+.order-track--ready {
+  background: #DDE3C6;
+}
+
+.order-track__top {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.order-track__code {
+  font: 700 1.3rem "Oswald", sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.order-track__steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 10px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.order-track__steps li {
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(58, 35, 24, 0.1);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.order-track__steps li.is-done {
+  background: var(--color-espresso);
+  color: var(--color-cream);
+}
+
+.order-track__note {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .hub,
+  .hub--manager,
+  .login__grid,
+  .account__grid {
+    grid-template-columns: 1fr;
+  }
+}

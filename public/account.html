@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title.account">My account — minh</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/options.js" defer></script>
+  <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/cart.js" defer></script>
+  <script src="js/drink-window.js" defer></script>
+  <script src="js/account.js" defer></script>
+</head>
+<body data-decor="beans">
+
+  <div class="card">
+    <div class="decor" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="back-link" href="index.html" data-i18n="nav.home">&larr; Home</a>
+      <a class="logo-link" href="index.html"><img class="logo" src="images/minh-4-saloon-light.svg" alt="minh, back to home" data-i18n-attr="alt:nav.logoHome"></a>
+      <a class="login-link" href="login.html" data-i18n="nav.login">Log In</a>
+    </header>
+
+    <main class="admin account">
+      <div class="admin__bar">
+        <h1 class="admin__title" id="account-hello"></h1>
+        <button type="button" class="button button--small button--light" id="logout" data-i18n="account.logout">Log out</button>
+      </div>
+      <div class="account__grid">
+        <section class="tile account__points">
+          <h2 class="tile__title" data-i18n="account.points">My points</h2>
+          <p class="account__big" id="points"></p>
+          <p id="points-worth"></p>
+        </section>
+        <section class="panel account__current">
+          <h2 data-i18n="account.current">Current orders</h2>
+          <div id="current"></div>
+        </section>
+        <section class="panel account__profile">
+          <h2 data-i18n="account.profile">My details</h2>
+          <p id="profile"></p>
+          <label class="field--check"><input type="checkbox" id="promos"> <span data-i18n="login.promos">Send me promotions by email and text</span></label>
+        </section>
+        <section class="panel account__history">
+          <h2 data-i18n="account.history">Order history</h2>
+          <div class="admin__scroll"><table class="admin-table" id="history"></table></div>
+        </section>
+      </div>
+    </main>
+
+  </div>
+
+</body>
+</html>
