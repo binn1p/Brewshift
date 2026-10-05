@@ -30,54 +30,55 @@ function boxGroup(title, name, choices, picked) {
 function openDrinkWindow(drink, startQty = 1, edit = null) {
   const recipe = drink.recipe;
   const picked = edit ? edit.options : recipe;
-  const milkChoices = MILKS.map((milk) => ({ value: milk.id, label: milk.label, icon: milk.icon, extra: milk.extra }));
-  const levelChoices = (icon) => LEVELS.map((level) => ({ value: String(level), label: `${level}%`, icon }));
+  const milkChoices = MILKS.map((milk) => ({ value: milk.id, label: t(`milk.${milk.id}`), icon: milk.icon, extra: milk.extra }));
+  const percent = (level) => (LANG === "fr" ? `${level} %` : `${level}%`);
+  const levelChoices = (icon) => LEVELS.map((level) => ({ value: String(level), label: percent(level), icon }));
 
-  drinkWindow.setAttribute("aria-label", drink.name);
+  drinkWindow.setAttribute("aria-label", tr(drink.name));
   drinkWindow.innerHTML = `
-    <button type="button" class="window__close drink-window__close" aria-label="Close">&times;</button>
+    <button type="button" class="window__close drink-window__close" aria-label="${t("common.close")}">&times;</button>
     <div class="drink-window__grid">
       <div class="drink-window__left">
-        <img class="drink-window__photo" src="images/menu/${drink.id}-side.jpg" alt="">
+        <img class="drink-window__photo" src="${drink.sidePhoto || drink.photo}" alt="">
         <section>
-          <h3>Ingredients</h3>
+          <h3>${t("dw.ingredients")}</h3>
           <ul class="drink-window__ingredients"></ul>
         </section>
         <section>
-          <h3>The story</h3>
+          <h3>${t("dw.story")}</h3>
           <p class="drink-window__story"></p>
         </section>
       </div>
       <form class="drink-window__right">
-        ${drink.tag ? `<span class="drink-window__tag">${drink.tag}</span>` : ""}
+        ${drink.tag ? `<span class="drink-window__tag">${tr(drink.tag)}</span>` : ""}
         <h2 class="drink-window__name"></h2>
         <p class="drink-window__vi"></p>
-        ${boxGroup("Milk", "milk", milkChoices, picked.milk)}
-        ${boxGroup("Sugar", "sugar", levelChoices("sugar"), String(picked.sugar))}
-        ${recipe.ice === null ? "" : boxGroup("Ice", "ice", levelChoices("ice"), String(picked.ice))}
+        ${boxGroup(t("dw.milk"), "milk", milkChoices, picked.milk)}
+        ${boxGroup(t("dw.sugar"), "sugar", levelChoices("sugar"), String(picked.sugar))}
+        ${recipe.ice === null ? "" : boxGroup(t("dw.ice"), "ice", levelChoices("ice"), String(picked.ice))}
         <label class="drink-window__note">
-          <span>${ICONS.note} Note</span>
-          <textarea name="note" rows="2" maxlength="120" placeholder="Anything else? e.g. extra hot, less foam"></textarea>
+          <span>${ICONS.note} ${t("dw.note")}</span>
+          <textarea name="note" rows="2" maxlength="120" placeholder="${t("dw.notePlaceholder")}"></textarea>
         </label>
         <div class="drink-window__qty">
-          <span>Quantity</span>
+          <span>${t("dw.qty")}</span>
           <div class="stepper">
-            <button type="button" data-change="-1" aria-label="One less">&minus;</button>
+            <button type="button" data-change="-1" aria-label="${t("common.less")}">&minus;</button>
             <span aria-live="polite"></span>
-            <button type="button" data-change="1" aria-label="One more">+</button>
+            <button type="button" data-change="1" aria-label="${t("common.more")}">+</button>
           </div>
         </div>
-        ${drink.promo ? `<p class="drink-window__promo">${drink.tag}: every second one is free</p>` : ""}
+        ${drink.promo ? `<p class="drink-window__promo">${t("dw.promo", { tag: tr(drink.tag) })}</p>` : ""}
         <button type="submit" class="button"></button>
       </form>
     </div>`;
 
-  drinkWindow.querySelector(".drink-window__photo").alt = drink.name;
-  drinkWindow.querySelector(".drink-window__name").textContent = drink.name;
-  drinkWindow.querySelector(".drink-window__vi").textContent = `${drink.viName} · from ${money(drink.price)}`;
-  drinkWindow.querySelector(".drink-window__story").textContent = drink.story;
+  drinkWindow.querySelector(".drink-window__photo").alt = tr(drink.name);
+  drinkWindow.querySelector(".drink-window__name").textContent = tr(drink.name);
+  drinkWindow.querySelector(".drink-window__vi").textContent = t("dw.from", { vi: drink.viName, price: money(drink.price) });
+  drinkWindow.querySelector(".drink-window__story").textContent = tr(drink.story);
   const list = drinkWindow.querySelector(".drink-window__ingredients");
-  drink.ingredients.forEach((ingredient) => {
+  tr(drink.ingredients).forEach((ingredient) => {
     const li = document.createElement("li");
     li.textContent = ingredient;
     list.append(li);
@@ -87,12 +88,18 @@ function openDrinkWindow(drink, startQty = 1, edit = null) {
   if (edit) form.elements.note.value = edit.options.note;
   const submit = form.querySelector("[type=submit]");
   const qtyLabel = form.querySelector(".stepper span");
+  const soldOut = !edit && isSoldOut(drink);
   let qty = Math.min(20, Math.max(1, startQty));
 
   const unitPrice = () => drink.price + findMilk(form.elements.milk.value).extra;
   const updateTotal = () => {
     qtyLabel.textContent = qty;
-    submit.innerHTML = `${edit ? "Save changes" : "Add to bag"} · ${priceHTML(unitPrice(), qty, drink.promo)}`;
+    submit.innerHTML = `${t(edit ? "dw.save" : "dw.add")} · ${priceHTML(unitPrice(), qty, drink.promo)}`;
+    // A sold-out drink can be read about but not added
+    if (soldOut) {
+      submit.disabled = true;
+      submit.textContent = t("dw.soldOut");
+    }
   };
 
   form.querySelectorAll("[data-change]").forEach((button) => {
@@ -108,7 +115,7 @@ function openDrinkWindow(drink, startQty = 1, edit = null) {
     event.preventDefault();
     const item = {
       id: drink.id,
-      name: drink.name,
+      name: tr(drink.name),
       unitPrice: unitPrice(),
       qty,
       promo: drink.promo || null,

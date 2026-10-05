@@ -11,7 +11,9 @@ const DECOR = {
 };
 
 const decorLayer = document.querySelector(".decor");
-const makeDecor = DECOR[document.body.dataset.decor];
+// The manager's choice in Settings wins over the page's own data-decor
+const decorChoice = typeof getSettings === "function" ? getSettings().decor : document.body.dataset.decor;
+const makeDecor = DECOR[decorChoice];
 if (decorLayer && makeDecor) {
   for (let i = 0; i < 60; i++) {
     const piece = makeDecor();

@@ -61,16 +61,16 @@ function replaceCartLine(index, item) {
 const cartButton = document.createElement("button");
 cartButton.type = "button";
 cartButton.className = "cart-button";
-cartButton.setAttribute("aria-label", "Open your bag");
+cartButton.setAttribute("aria-label", t("cart.open"));
 cartButton.innerHTML = `<span class="cart-button__count"></span>`;
 
 const cartWindow = document.createElement("dialog");
 cartWindow.className = "window cart-window";
-cartWindow.setAttribute("aria-label", "Your bag");
+cartWindow.setAttribute("aria-label", t("cart.title"));
 cartWindow.innerHTML = `
   <div class="window__header">
-    <h2>Your bag</h2>
-    <button type="button" class="window__close" aria-label="Close">&times;</button>
+    <h2>${t("cart.title")}</h2>
+    <button type="button" class="window__close" aria-label="${t("common.close")}">&times;</button>
   </div>
   <div class="cart-window__body"></div>`;
 
@@ -95,32 +95,33 @@ function renderCart() {
   const body = cartWindow.querySelector(".cart-window__body");
   if (cart.length === 0) {
     body.innerHTML = `
-      <p class="cart-window__empty">Your bag is empty.</p>
-      <a class="button" href="menu.html">Browse the menu</a>`;
+      <p class="cart-window__empty">${t("cart.empty")}</p>
+      <a class="button" href="menu.html">${t("cart.browse")}</a>`;
     return;
   }
 
   const subtotal = cart.reduce((sum, item) => sum + lineTotal(item.unitPrice, item.qty, item.promo), 0);
-  const taxRows = TAXES.map((tax) => `<p class="cart-window__sum"><span>${tax.label}</span><span>${money(subtotal * tax.rate)}</span></p>`).join("");
-  const total = subtotal * (1 + TAXES.reduce((sum, tax) => sum + tax.rate, 0));
+  const percentText = (n) => (LANG === "fr" ? String(n).replace(".", ",") : String(n));
+  const taxRows = getTaxes().map((tax) => `<p class="cart-window__sum"><span>${t(tax.label, { n: percentText(tax.percent) })}</span><span>${money(subtotal * tax.rate)}</span></p>`).join("");
+  const total = subtotal * (1 + getTaxes().reduce((sum, tax) => sum + tax.rate, 0));
 
   body.innerHTML = `
     <ul class="cart-window__items"></ul>
     <div class="cart-window__sums">
-      <p class="cart-window__sum"><span>Subtotal (before tax)</span><span>${money(subtotal)}</span></p>
+      <p class="cart-window__sum"><span>${t("cart.subtotal")}</span><span>${money(subtotal)}</span></p>
       ${taxRows}
-      <p class="cart-window__sum cart-window__sum--total"><span>Total (after tax)</span><span>${money(total)}</span></p>
+      <p class="cart-window__sum cart-window__sum--total"><span>${t("cart.total")}</span><span>${money(total)}</span></p>
     </div>
     <form class="cart-window__checkout">
       <label class="pickup">
-        <span>Name for pickup <span class="pickup__required" aria-hidden="true">*</span></span>
-        <input name="pickup" required maxlength="40" autocomplete="given-name" placeholder="We'll call this name at the counter">
+        <span>${t("cart.name")} <span class="pickup__required" aria-hidden="true">*</span></span>
+        <input name="pickup" required maxlength="40" autocomplete="given-name" placeholder="${t("cart.namePlaceholder")}">
       </label>
       <label class="pickup">
-        <span>Phone <span class="pickup__required" aria-hidden="true">*</span></span>
+        <span>${t("cart.phone")} <span class="pickup__required" aria-hidden="true">*</span></span>
         <input name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="(514) 555-0142">
       </label>
-      <button type="submit" class="button">Checkout</button>
+      <button type="submit" class="button">${t("cart.checkout")}</button>
       <p class="cart-window__notice" role="status"></p>
     </form>`;
 
@@ -137,7 +138,7 @@ function renderCart() {
   const checkPhone = () => {
     const digits = phone.value.replace(/\D/g, "");
     const ok = digits.length === 10 || (digits.length === 11 && digits.startsWith("1"));
-    phone.setCustomValidity(ok || !phone.value ? "" : "Please enter a 10-digit phone number.");
+    phone.setCustomValidity(ok || !phone.value ? "" : t("cart.phoneError"));
   };
   phone.addEventListener("input", () => {
     checkPhone();
@@ -149,8 +150,19 @@ function renderCart() {
     event.preventDefault();
     if (!pickup.value.trim()) pickup.value = "";
     if (!checkout.reportValidity()) return;
-    checkout.querySelector(".cart-window__notice").textContent =
-      `Thanks, ${pickup.value.trim()}! Online payment is coming soon.`;
+    // Save the order, empty the bag, and show the order code
+    const order = addOrder(readCart(), pickup.value.trim(), phone.value);
+    localStorage.removeItem(CART_KEY);
+    renderCart();
+    cartWindow.querySelector(".cart-window__body").innerHTML = `
+      <div class="order-done">
+        <p class="order-done__thanks"></p>
+        <p class="order-done__label">${t("cart.code")}</p>
+        <p class="order-done__code"></p>
+        <p>${t("cart.paymentSoon")}</p>
+      </div>`;
+    cartWindow.querySelector(".order-done__code").textContent = order.code;
+    cartWindow.querySelector(".order-done__thanks").textContent = t("cart.placed", { name: order.customerName });
   });
 
   // textContent (not innerHTML) for saved text such as the note, so it is shown as plain text
@@ -162,22 +174,25 @@ function renderCart() {
       <div class="cart-line__top">
         <strong></strong>
         <div class="stepper">
-          <button type="button" data-change="-1" aria-label="One less">&minus;</button>
+          <button type="button" data-change="-1" aria-label="${t("common.less")}">&minus;</button>
           <span></span>
-          <button type="button" data-change="1" aria-label="One more">+</button>
+          <button type="button" data-change="1" aria-label="${t("common.more")}">+</button>
         </div>
         <span class="cart-line__price"></span>
       </div>
       <div class="cart-line__chips"></div>`;
-    row.querySelector("strong").textContent = item.name;
+    // Show the drink name in the current language when the menu is on this page
+    const drink = typeof findDrink === "function" ? findDrink(item.id) : null;
+    const name = drink ? tr(drink.name) : item.name;
+    row.querySelector("strong").textContent = name;
     row.querySelector(".stepper span").textContent = item.qty;
     row.querySelector(".cart-line__price").innerHTML = priceHTML(item.unitPrice, item.qty, item.promo);
 
     const chips = row.querySelector(".cart-line__chips");
     const milk = findMilk(item.options.milk);
-    chips.append(chip(milk.icon, milk.label));
-    chips.append(chip("sugar", `Sugar ${item.options.sugar}%`));
-    if (item.options.ice !== null) chips.append(chip("ice", `Ice ${item.options.ice}%`));
+    chips.append(chip(milk.icon, t(`milk.${milk.id}`)));
+    chips.append(chip("sugar", t("cart.sugar", { n: item.options.sugar })));
+    if (item.options.ice !== null) chips.append(chip("ice", t("cart.ice", { n: item.options.ice })));
     if (item.options.note) chips.append(chip("note", item.options.note));
 
     // Edit opens the drink window on top of the bag with this line's choices;
@@ -185,8 +200,8 @@ function renderCart() {
     const editButton = document.createElement("button");
     editButton.type = "button";
     editButton.className = "cart-line__edit";
-    editButton.textContent = "Edit";
-    editButton.setAttribute("aria-label", `Edit ${item.name}`);
+    editButton.textContent = t("cart.edit");
+    editButton.setAttribute("aria-label", t("cart.editLabel", { name }));
     editButton.addEventListener("click", () => {
       openDrinkWindow(findDrink(item.id), item.qty, {
         options: item.options,

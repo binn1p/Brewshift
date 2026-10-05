@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>minh — Vietnamese coffee, Montreal</title>
+  <title data-i18n="title.home">minh — Vietnamese coffee, Montreal</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Be+Vietnam+Pro:wght@400;600&display=swap">
   <link rel="stylesheet" href="css/style.css">
-  <script src="js/decor.js" defer></script>
-  <script src="js/home.js" defer></script>
+  <script src="js/i18n.js" defer></script>
   <script src="js/options.js" defer></script>
-  <script src="js/cart.js" defer></script>
   <script src="js/menu-data.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="js/decor.js" defer></script>
+  <script src="js/shapes.js" defer></script>
+  <script src="js/home.js" defer></script>
+  <script src="js/cart.js" defer></script>
   <script src="js/drink-window.js" defer></script>
 </head>
 <body data-decor="beans">
@@ -26,33 +29,33 @@
 
     <header class="site-header">
       <img class="logo" src="images/minh-4-saloon-light.svg" alt="minh">
-      <a class="login-link" href="login.html">Log In</a>
+      <a class="login-link" href="login.html" data-i18n="nav.login">Log In</a>
     </header>
 
-    <main class="bento">
+    <main class="bento" data-shape-grid>
 
-      <a class="tile tile--menu" href="menu.html">
+      <a class="tile tile--menu" href="menu.html" data-cut="2/3 2/3">
         <h2 class="tile__title tile__title--big">Menu</h2>
-        <p>7 Vietnamese coffees, brewed slow with a phin.</p>
+        <p data-i18n="home.menu.text">7 Vietnamese coffees, brewed slow with a phin.</p>
         <img class="tile__snapshot" src="images/backgrounds/menu-snapshot.jpg" alt="">
-        <span class="tile__cta">Open the menu &rarr;</span>
+        <span class="tile__cta" data-i18n="home.menu.cta">Open the menu &rarr;</span>
       </a>
 
-      <a class="tile tile--seasonal" href="menu.html?drink=egg-coffee">
-        <span class="tile__label">Fall special</span>
-        <h2 class="tile__title">Egg Coffee</h2>
-        <p>Cà phê trứng: coffee under whipped egg-yolk and condensed-milk cream, Hanoi style.</p>
-        <span class="tile__cta">$8 &middot; Discover &rarr;</span>
+      <a class="tile tile--seasonal" href="menu.html?drink=egg-coffee" data-cut="2/3 1/2">
+        <span class="tile__label" data-i18n="home.seasonal.label">Fall special</span>
+        <h2 class="tile__title" data-i18n="home.seasonal.title">Egg Coffee</h2>
+        <p data-i18n="home.seasonal.text">Cà phê trứng: coffee under whipped egg-yolk and condensed-milk cream, Hanoi style.</p>
+        <span class="tile__cta" data-i18n="home.seasonal.cta">$8 &middot; Discover &rarr;</span>
       </a>
 
       <a class="tile tile--promo" href="menu.html?drink=iced-milk-coffee&amp;qty=2">
         <span class="tile__label">Promo</span>
-        <h2 class="tile__title">2 for 1 iced coffee</h2>
-        <p>Weekdays, 2 to 4 pm.</p>
+        <h2 class="tile__title" data-i18n="home.promo.title">2 for 1 iced coffee</h2>
+        <p data-i18n="home.promo.text">Weekdays, 2 to 4 pm.</p>
       </a>
 
       <a class="tile tile--about" href="about.html">
-        <h2 class="tile__title">About minh</h2>
+        <h2 class="tile__title" data-i18n="home.about">About minh</h2>
       </a>
 
     </main>
