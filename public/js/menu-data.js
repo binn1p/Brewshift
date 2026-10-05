@@ -1,87 +1,127 @@
-// The menu, from docs/menu.md. In week 2 this moves to data/menu.json and
-// is loaded from the server instead.
+// The starting menu, from docs/menu.md. store.js copies it into the data store
+// the first time, and managers edit it from there (Menu page of the dashboard).
+// In week 2 it becomes data/menu.json on the server.
 //
+// Text shown to customers has both languages ({ en, fr }); tr() in i18n.js picks one.
 // recipe: the default customize choices (the boxes that start pressed down).
 //   ice: null means a hot drink, so no ice choices are shown.
 // spot: where the drink sits on the menu canvas, in % of the canvas width
 //   (x, w) and height (y). label: which side its name and price go on.
 // promo: optional deal, e.g. { buy: 2, pay: 1 } = 2 for 1 (see lineTotal in options.js).
-const MENU = [
+const MENU_SEED = [
   {
     id: "iced-milk-coffee",
-    name: "Iced Coffee with Milk",
+    name: { en: "Iced Coffee with Milk", fr: "Café glacé au lait" },
     viName: "Cà phê sữa đá",
     price: 6,
-    tag: "2 for 1",
+    tag: { en: "2 for 1", fr: "2 pour 1" },
     promo: { buy: 2, pay: 1 },
     recipe: { milk: "condensed", sugar: 100, ice: 100 },
     spot: { x: 6, y: 3, w: 6, label: "right" },
-    ingredients: ["Robusta coffee, slow-dripped through a phin", "Sweetened condensed milk", "Ice"],
-    story: "The drink every Saigon street corner wakes up to: a phin ticking over a glass, then a long stir until the milk turns the coffee caramel brown.",
+    ingredients: {
+      en: ["Robusta coffee, slow-dripped through a phin", "Sweetened condensed milk", "Ice"],
+      fr: ["Café robusta, filtré lentement au phin", "Lait concentré sucré", "Glace"],
+    },
+    story: {
+      en: "The drink every Saigon street corner wakes up to: a phin ticking over a glass, then a long stir until the milk turns the coffee caramel brown.",
+      fr: "La boisson qui réveille chaque coin de rue de Saïgon : un phin qui goutte au-dessus d'un verre, puis on brasse longtemps jusqu'à ce que le lait donne au café une couleur caramel.",
+    },
   },
   {
     id: "hot-milk-coffee",
-    name: "Hot Coffee with Milk",
+    name: { en: "Hot Coffee with Milk", fr: "Café chaud au lait" },
     viName: "Cà phê sữa nóng",
     price: 6,
     recipe: { milk: "condensed", sugar: 100, ice: null },
     spot: { x: 29, y: 30, w: 17, label: "right" },
-    ingredients: ["Robusta coffee, slow-dripped through a phin", "Sweetened condensed milk"],
-    story: "The cool-morning version of the classic, kept warm in a small bowl of hot water while it drips.",
+    ingredients: {
+      en: ["Robusta coffee, slow-dripped through a phin", "Sweetened condensed milk"],
+      fr: ["Café robusta, filtré lentement au phin", "Lait concentré sucré"],
+    },
+    story: {
+      en: "The cool-morning version of the classic, kept warm in a small bowl of hot water while it drips.",
+      fr: "La version des matins frais du grand classique, gardée au chaud dans un petit bol d'eau chaude pendant qu'elle s'égoutte.",
+    },
   },
   {
     id: "egg-coffee",
-    name: "Egg Coffee",
+    name: { en: "Egg Coffee", fr: "Café aux œufs" },
     viName: "Cà phê trứng",
     price: 8,
-    tag: "Fall special",
+    tag: { en: "Fall special", fr: "Spécial d'automne" },
     recipe: { milk: "condensed", sugar: 100, ice: null },
     spot: { x: 56, y: 2, w: 10, label: "right" },
-    ingredients: ["Phin coffee", "Egg yolk", "Condensed milk, whipped into a custard cream"],
-    story: "Invented in Hà Nội in 1946, when fresh milk was scarce: egg yolk whipped with condensed milk until it tastes like custard, floated on strong coffee.",
+    ingredients: {
+      en: ["Phin coffee", "Egg yolk", "Condensed milk, whipped into a custard cream"],
+      fr: ["Café au phin", "Jaune d'œuf", "Lait concentré, fouetté en crème onctueuse"],
+    },
+    story: {
+      en: "Invented in Hà Nội in 1946, when fresh milk was scarce: egg yolk whipped with condensed milk until it tastes like custard, floated on strong coffee.",
+      fr: "Inventé à Hà Nội en 1946, quand le lait frais était rare : du jaune d'œuf fouetté avec du lait concentré jusqu'à goûter la crème pâtissière, posé sur un café corsé.",
+    },
   },
   {
     id: "hot-black-coffee",
-    name: "Hot Black Coffee",
+    name: { en: "Hot Black Coffee", fr: "Café noir chaud" },
     viName: "Cà phê đen nóng",
     price: 6,
     recipe: { milk: "none", sugar: 50, ice: null },
     spot: { x: 85, y: 30, w: 10, label: "left" },
-    ingredients: ["Robusta coffee, slow-dripped through a phin", "A little sugar"],
-    story: "Just coffee and patience. Watch it drip, drop by drop, and the day slows down with it.",
+    ingredients: {
+      en: ["Robusta coffee, slow-dripped through a phin", "A little sugar"],
+      fr: ["Café robusta, filtré lentement au phin", "Un peu de sucre"],
+    },
+    story: {
+      en: "Just coffee and patience. Watch it drip, drop by drop, and the day slows down with it.",
+      fr: "Juste du café et de la patience. Regardez-le couler, goutte à goutte, et la journée ralentit avec lui.",
+    },
   },
   {
     id: "coconut-coffee",
-    name: "Coconut Coffee",
+    name: { en: "Coconut Coffee", fr: "Café à la noix de coco" },
     viName: "Cà phê dừa",
     price: 8,
     recipe: { milk: "coconut", sugar: 75, ice: 100 },
     spot: { x: 10, y: 52, w: 13, label: "right" },
-    ingredients: ["Phin coffee", "Coconut milk", "Condensed milk", "Ice"],
-    story: "A southern twist: coconut groves meet coffee farms in one glass, creamy and a little tropical.",
+    ingredients: {
+      en: ["Phin coffee", "Coconut milk", "Condensed milk", "Ice"],
+      fr: ["Café au phin", "Lait de coco", "Lait concentré", "Glace"],
+    },
+    story: {
+      en: "A southern twist: coconut groves meet coffee farms in one glass, creamy and a little tropical.",
+      fr: "Une touche du Sud : les cocoteraies rencontrent les plantations de café dans un même verre, onctueux et un peu tropical.",
+    },
   },
   {
     id: "iced-black-coffee",
-    name: "Iced Black Coffee",
+    name: { en: "Iced Black Coffee", fr: "Café noir glacé" },
     viName: "Cà phê đen đá",
     price: 6,
     recipe: { milk: "none", sugar: 50, ice: 100 },
     spot: { x: 37, y: 66, w: 11, label: "right" },
-    ingredients: ["Robusta coffee, slow-dripped through a phin", "A little sugar", "Ice"],
-    story: "No milk, no hiding. The way old uncles drink it at plastic tables, slowly, between long conversations.",
+    ingredients: {
+      en: ["Robusta coffee, slow-dripped through a phin", "A little sugar", "Ice"],
+      fr: ["Café robusta, filtré lentement au phin", "Un peu de sucre", "Glace"],
+    },
+    story: {
+      en: "No milk, no hiding. The way old uncles drink it at plastic tables, slowly, between long conversations.",
+      fr: "Sans lait, sans détour. Comme le boivent les vieux oncles aux tables de plastique, lentement, entre deux longues conversations.",
+    },
   },
   {
     id: "orange-coffee",
-    name: "Orange Coffee",
+    name: { en: "Orange Coffee", fr: "Café à l'orange" },
     viName: "Cà phê cam",
     price: 8,
     recipe: { milk: "none", sugar: 50, ice: 100 },
     spot: { x: 66, y: 60, w: 11, label: "right" },
-    ingredients: ["Fresh-squeezed orange juice", "Phin coffee", "A little honey", "Ice"],
-    story: "It sounds strange until the first sip: bright citrus underneath, dark coffee floating on top, like sunrise over a dark river.",
+    ingredients: {
+      en: ["Fresh-squeezed orange juice", "Phin coffee", "A little honey", "Ice"],
+      fr: ["Jus d'orange fraîchement pressé", "Café au phin", "Un peu de miel", "Glace"],
+    },
+    story: {
+      en: "It sounds strange until the first sip: bright citrus underneath, dark coffee floating on top, like sunrise over a dark river.",
+      fr: "Ça semble étrange jusqu'à la première gorgée : un agrume vif en dessous, un café sombre qui flotte au-dessus, comme un lever de soleil sur une rivière sombre.",
+    },
   },
 ];
-
-function findDrink(id) {
-  return MENU.find((drink) => drink.id === id);
-}

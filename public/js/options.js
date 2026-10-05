@@ -14,30 +14,35 @@ const ICONS = {
   note: `<svg viewBox="0 0 24 24" ${ICON_STYLE}><path d="M4 20l1-4L16 5l3 3L8 19z" fill="#E0A93B"/><path d="M14 7l3 3"/></svg>`,
 };
 
-// Milk choices; `extra` is added to the drink price
+// Milk choices; `extra` is added to the drink price. Names come from i18n.js ("milk.<id>").
 const MILKS = [
-  { id: "none", label: "No milk", icon: "none", extra: 0 },
-  { id: "condensed", label: "Condensed milk", icon: "condensed", extra: 0 },
-  { id: "fresh", label: "Fresh milk", icon: "fresh", extra: 0 },
-  { id: "almond", label: "Almond milk", icon: "almond", extra: 0.75 },
-  { id: "oat", label: "Oat milk", icon: "oat", extra: 0.75 },
-  { id: "coconut", label: "Coconut milk", icon: "coconut", extra: 0.5 },
+  { id: "none", icon: "none", extra: 0 },
+  { id: "condensed", icon: "condensed", extra: 0 },
+  { id: "fresh", icon: "fresh", extra: 0 },
+  { id: "almond", icon: "almond", extra: 0.75 },
+  { id: "oat", icon: "oat", extra: 0.75 },
+  { id: "coconut", icon: "coconut", extra: 0.5 },
 ];
 
 const LEVELS = [0, 25, 50, 75, 100];
 
-// Quebec sales taxes (Montreal)
-const TAXES = [
-  { label: "GST 5%", rate: 0.05 },
-  { label: "QST 9.975%", rate: 0.09975 },
-];
+// Quebec sales taxes (Montreal); the rates can be changed in Settings
+function getTaxes() {
+  const rates = typeof getSettings === "function" ? getSettings().taxes : { gst: 5, qst: 9.975 };
+  return [
+    { label: "tax.gst", rate: rates.gst / 100, percent: rates.gst },
+    { label: "tax.qst", rate: rates.qst / 100, percent: rates.qst },
+  ];
+}
 
 function findMilk(id) {
   return MILKS.find((milk) => milk.id === id);
 }
 
+// $6.00 in English, 6,00 $ in French (Québec style)
 function money(amount) {
-  return `$${amount.toFixed(2)}`;
+  const fixed = amount.toFixed(2);
+  return LANG === "en" ? `$${fixed}` : `${fixed.replace(".", ",")} $`;
 }
 
 // Price of one cart line. A promo like { buy: 2, pay: 1 } ("2 for 1") makes
