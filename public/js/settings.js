@@ -41,6 +41,9 @@ function render() {
       ${input("limitPart", t("set.limitPart"), "", "number", 'min="0"')}
       ${input("limitFull", t("set.limitFull"), "", "number", 'min="0"')}
       ${input("payStart", t("set.payStart"), "", "date")}
+      <h2>${t("set.loyalty")}</h2>
+      ${input("pointsPerDrink", t("set.pointsPerDrink"), "", "number", 'min="0" step="1"')}
+      ${input("pointValue", t("set.pointValue"), "", "number", 'min="0" step="0.25"')}
     </section>
     <section class="panel">
       <h2>${t("set.home")}</h2>
@@ -85,6 +88,8 @@ function render() {
   f.limitPart.value = s.limits.partTime;
   f.limitFull.value = s.limits.fullTime;
   f.payStart.value = s.payPeriodStart;
+  f.pointsPerDrink.value = s.loyalty.pointsPerDrink;
+  f.pointValue.value = s.loyalty.pointValue;
   f.loading.value = s.loadingMs / 1000;
   f.decor.value = s.decor;
   form.querySelectorAll("select[name=seasonal] option, select[name=promo] option").forEach((option) => {
@@ -175,6 +180,7 @@ form.addEventListener("submit", (event) => {
     taxes: { gst: Number(f.gst.value) || 0, qst: Number(f.qst.value) || 0 },
     limits: { international: Number(f.limitIntl.value) || 0, partTime: Number(f.limitPart.value) || 0, fullTime: Number(f.limitFull.value) || 0 },
     payPeriodStart: f.payStart.value || s.payPeriodStart,
+    loyalty: { pointsPerDrink: Number(f.pointsPerDrink.value) || 0, pointValue: Number(f.pointValue.value) || 0 },
     home: { seasonalDrink: f.seasonal.value, promoDrink: f.promo.value },
     loadingMs: Math.round((Number(f.loading.value) || 0) * 1000),
     decor: f.decor.value,

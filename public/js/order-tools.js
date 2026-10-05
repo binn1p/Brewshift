@@ -26,9 +26,10 @@ function optionsText(options) {
 
 // ---------- Printing ----------
 
-function printSlip({ title, code, customer, takenBy, payment, lines, when, paid }) {
+function printSlip({ title, code, customer, takenBy, payment, lines, when, paid, discount = 0, pointsUsed = 0, pointsEarned = 0, cashReceived = null, change = null }) {
   const shop = getSettings().shop;
-  const subtotal = lines.reduce((sum, line) => sum + lineTotal(line.unitPrice, line.qty, line.promo), 0);
+  const items = lines.reduce((sum, line) => sum + lineTotal(line.unitPrice, line.qty, line.promo), 0);
+  const subtotal = Math.max(0, items - discount);
   const taxes = getTaxes();
 
   let slip = document.querySelector(".receipt-print");
@@ -74,9 +75,18 @@ function printSlip({ title, code, customer, takenBy, payment, lines, when, paid 
     row.insertCell().textContent = label;
     row.insertCell().textContent = value;
   };
+  if (discount) {
+    addSum(t("receipt.items"), money(items));
+    addSum(t("pos.pointsDiscount", { n: pointsUsed }), `−${money(discount)}`);
+  }
   addSum(t("cart.subtotal"), money(subtotal));
   taxes.forEach((tax) => addSum(t(tax.label, { n: tax.percent }), money(subtotal * tax.rate)));
   addSum(t("cart.total"), money(subtotal * (1 + taxes.reduce((s, tax) => s + tax.rate, 0))), true);
+  if (cashReceived !== null) {
+    addSum(t("pos.received"), money(cashReceived));
+    addSum(t("receipt.change"), money(change));
+  }
+  if (pointsEarned) addSum(t("receipt.points"), `+${pointsEarned}`);
   slip.querySelector(".receipt__foot").textContent = paid
     ? `${t("receipt.paidBy")}: ${t(`payment.${payment}`)} · ${t("receipt.thanks")}`
     : t("receipt.notPaid");
@@ -86,9 +96,9 @@ function printSlip({ title, code, customer, takenBy, payment, lines, when, paid 
   document.body.classList.remove("is-printing-slip");
 }
 
-function printBill(cart, customer) {
+function printBill(cart, customer, discount = 0) {
   if (!cart.length) return;
-  printSlip({ title: t("receipt.bill"), customer, takenBy: signedInUser()?.name, lines: cart, when: new Date(), paid: false });
+  printSlip({ title: t("receipt.bill"), customer, takenBy: signedInUser()?.name, lines: cart, when: new Date(), paid: false, discount, pointsUsed: discount / getSettings().loyalty.pointValue });
 }
 
 function printReceipt(order) {
@@ -102,6 +112,11 @@ function printReceipt(order) {
     lines: order.lines,
     when: new Date(order.createdAt),
     paid: isPaid(order) || Boolean(order.payment),
+    discount: order.discount || 0,
+    pointsUsed: order.pointsUsed || 0,
+    pointsEarned: order.pointsEarned || 0,
+    cashReceived: order.cashReceived ?? null,
+    change: order.change ?? null,
   });
 }
 

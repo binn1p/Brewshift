@@ -15,7 +15,8 @@
 // server will store only bcrypt hashes (FR-23) and check PINs itself.
 // Needs menu-data.js loaded first.
 
-const DB_KEY = "brewshift-db-v3";
+const DB_KEY = "brewshift-db-v4";
+const CUSTOMER_KEY = "brewshift-customer-id";
 const PHOTOS_KEY = "brewshift-photos";
 const SESSION_KEY = "brewshift-staff-id";
 
@@ -112,6 +113,8 @@ const DEFAULT_SETTINGS = {
   limits: { international: 24, partTime: 30, fullTime: 40 },
   home: { seasonalDrink: "egg-coffee", promoDrink: "iced-milk-coffee" },
   loadingMs: 1800,
+  // Members earn points per drink; each point is worth this many dollars off at the counter
+  loyalty: { pointsPerDrink: 1, pointValue: 1 },
   decor: "beans",
   // Pay periods are two weeks long, counted from this Sunday
   payPeriodStart: "2026-09-27",
@@ -238,6 +241,33 @@ function buildDemoOrders(menu) {
       });
     }
   }
+  // A few orders still open right now, so the current-orders page has something to show
+  const now = Date.now();
+  [
+    { ago: 14, status: "ready", source: "online", name: "Jade", lines: [["iced-milk-coffee", 2]] },
+    { ago: 9, status: "in_progress", source: "counter", name: "Hugo", lines: [["egg-coffee", 1], ["hot-black-coffee", 1]] },
+    { ago: 6, status: "received", source: "online", name: "Maya", pickupIn: 25, lines: [["coconut-coffee", 1]] },
+    { ago: 3, status: "received", source: "counter", name: "Leo", lines: [["orange-coffee", 1]] },
+    { ago: 1, status: "received", source: "online", name: "Alex", lines: [["iced-black-coffee", 1], ["egg-coffee", 1]] },
+  ].forEach((demo, i) => {
+    orders.push({
+      id: `o_open_${i}`,
+      code: orderCode(random),
+      customerName: demo.name,
+      phone: demo.source === "online" ? `514555${1000 + i}` : "",
+      source: demo.source,
+      takenBy: demo.source === "counter" ? "u_linh" : null,
+      payment: demo.source === "counter" ? "card" : null,
+      lines: demo.lines.map(([id, qty]) => {
+        const drink = menu.find((d) => d.id === id);
+        return { id, qty, unitPrice: drink.price, promo: drink.promo || null, options: { ...drink.recipe, note: "" } };
+      }),
+      status: demo.status,
+      createdAt: new Date(now - demo.ago * 60000).toISOString(),
+      pickupAt: demo.pickupIn ? new Date(now + demo.pickupIn * 60000).toISOString() : null,
+      history: [],
+    });
+  });
   return orders;
 }
 
@@ -250,6 +280,16 @@ function seedMenu() {
     soldOut: null, // null, { until: "YYYY-MM-DD" } for today only, or { until: null } until turned back on
   }));
 }
+
+// Demo member (password "coffee123"); the hash is SHA-256 of the password.
+// DEMO ONLY: the server will use bcrypt.
+const DEMO_CUSTOMERS = [
+  {
+    id: "c_alex", name: "Alex Martin", email: "alex@example.com", phone: "5145550123",
+    passwordHash: "a3c47c16f93a8f757b80046860008d929ed6d7e0e12943a24c150170d47c359f",
+    promos: true, points: 7, createdAt: "2026-09-01T12:00:00Z",
+  },
+];
 
 function buildDemoData() {
   const shifts = [];
@@ -275,12 +315,19 @@ function buildDemoData() {
     }
   }
   const menu = seedMenu();
+  const orders = buildDemoOrders(menu);
+  // Alex is a demo member: some of the online orders by "Alex" are theirs
+  orders.filter((o) => o.customerName === "Alex" && o.source === "online").slice(-12).forEach((o) => {
+    o.customerId = "c_alex";
+    o.phone = "5145550123";
+  });
   return {
     users: DEMO_USERS,
+    customers: DEMO_CUSTOMERS,
     punches,
     shifts,
     menu,
-    orders: buildDemoOrders(menu),
+    orders,
     stock: DEMO_STOCK,
     settings: DEFAULT_SETTINGS,
     votes: {},
@@ -486,8 +533,14 @@ function getOrders() {
   return loadDb().orders;
 }
 
+// Before tax, after any points discount
 function orderSubtotal(order) {
-  return order.lines.reduce((sum, line) => sum + lineTotal(line.unitPrice, line.qty, line.promo), 0);
+  const items = order.lines.reduce((sum, line) => sum + lineTotal(line.unitPrice, line.qty, line.promo), 0);
+  return Math.max(0, items - (order.discount || 0));
+}
+
+function drinkCount(lines) {
+  return lines.reduce((sum, line) => sum + line.qty, 0);
 }
 
 function orderTotal(order) {
@@ -511,10 +564,14 @@ function addOrder(cart, customerName, phone, extra = {}) {
     status: "received",
     createdAt: new Date().toISOString(),
     history: [],
+    customerId: null,
+    pickupAt: null,
     ...extra,
   };
   db.orders.push(order);
   saveDb(db);
+  // Counter orders are paid now, so the member earns points now
+  if (order.payment) awardPoints(order.id);
   return order;
 }
 
@@ -534,7 +591,96 @@ function changeOrder(id, byUserId, action, changes) {
   order.history.push({ at: new Date().toISOString(), by: byUserId, action, before: JSON.parse(JSON.stringify(before)), after: JSON.parse(JSON.stringify(changes)) });
   Object.assign(order, changes);
   saveDb(db);
+  // Online orders are paid at pickup: that is when the member earns points
+  if (changes.status === "picked_up") awardPoints(order.id);
   return order;
+}
+
+// ---------- Members and points ----------
+
+function getCustomers() {
+  const db = loadDb();
+  db.customers = db.customers || [];
+  return db.customers;
+}
+
+function findCustomer(id) {
+  return getCustomers().find((c) => c.id === id) || null;
+}
+
+function findCustomerByPhone(phone) {
+  const digits = phone.replace(/\D/g, "").slice(-10);
+  return digits.length === 10 ? getCustomers().find((c) => c.phone.slice(-10) === digits) || null : null;
+}
+
+function findCustomerByEmail(email) {
+  return getCustomers().find((c) => c.email.toLowerCase() === email.trim().toLowerCase()) || null;
+}
+
+// DEMO ONLY: a SHA-256 hash in the browser; the server will use bcrypt (FR-23)
+async function hashPassword(password) {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
+  return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function saveCustomer(customer) {
+  const db = loadDb();
+  db.customers = db.customers || [];
+  const index = db.customers.findIndex((c) => c.id === customer.id);
+  if (index >= 0) db.customers[index] = customer;
+  else db.customers.push(customer);
+  saveDb(db);
+}
+
+function signedInCustomer() {
+  const id = localStorage.getItem(CUSTOMER_KEY);
+  return id ? findCustomer(id) : null;
+}
+
+function signInCustomer(id) {
+  localStorage.setItem(CUSTOMER_KEY, id);
+}
+
+function signOutCustomer() {
+  localStorage.removeItem(CUSTOMER_KEY);
+}
+
+// Points for every drink, once per order
+function awardPoints(orderId) {
+  const db = loadDb();
+  const order = db.orders.find((o) => o.id === orderId);
+  if (!order || !order.customerId || order.pointsEarned) return;
+  const customer = (db.customers || []).find((c) => c.id === order.customerId);
+  if (!customer) return;
+  order.pointsEarned = drinkCount(order.lines) * getSettings().loyalty.pointsPerDrink;
+  customer.points += order.pointsEarned;
+  saveDb(db);
+}
+
+// Spend points at the counter (taken from the member right away)
+function spendPoints(customerId, points) {
+  const db = loadDb();
+  const customer = (db.customers || []).find((c) => c.id === customerId);
+  if (!customer || points > customer.points) return false;
+  customer.points -= points;
+  saveDb(db);
+  return true;
+}
+
+// ---------- Current orders (the queue) ----------
+
+const OPEN_STATUSES = ["received", "in_progress", "ready"];
+
+// Orders still being made or waiting, in the order they should be made:
+// by requested pickup time, or by when they came in if there is none
+function queueOrders() {
+  return getOrders()
+    .filter((order) => OPEN_STATUSES.includes(order.status))
+    .sort((a, b) => queueTime(a) - queueTime(b));
+}
+
+function queueTime(order) {
+  return new Date(order.pickupAt || order.createdAt).getTime();
 }
 
 function setOrderStatus(id, status, byUserId = null) {

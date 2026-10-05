@@ -115,21 +115,10 @@ function renderCart() {
       ${taxRows}
       <p class="cart-window__sum cart-window__sum--total"><span>${t("cart.total")}</span><span>${money(total)}</span></p>
     </div>
-    ${POS_MODE ? posCheckoutHTML() : `<form class="cart-window__checkout">
-      <label class="pickup">
-        <span>${t("cart.name")} <span class="pickup__required" aria-hidden="true">*</span></span>
-        <input name="pickup" required maxlength="40" autocomplete="given-name" placeholder="${t("cart.namePlaceholder")}">
-      </label>
-      <label class="pickup">
-        <span>${t("cart.phone")} <span class="pickup__required" aria-hidden="true">*</span></span>
-        <input name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="(514) 555-0142">
-      </label>
-      <button type="submit" class="button">${t("cart.checkout")}</button>
-      <p class="cart-window__notice" role="status"></p>
-    </form>`}`;
+    ${POS_MODE ? posCheckoutHTML(subtotal) : onlineCheckoutHTML()}`;
 
   if (POS_MODE) {
-    setupPosCheckout(body);
+    setupPosCheckout(body, subtotal);
   } else {
     setupOnlineCheckout(body);
   }
@@ -138,7 +127,44 @@ function renderCart() {
   showCartLines(body, cart);
 }
 
+function cartTotalWithTax(subtotal) {
+  return subtotal * (1 + getTaxes().reduce((sum, tax) => sum + tax.rate, 0));
+}
+
 // ---------- Online checkout (customers) ----------
+
+function onlineCheckoutHTML() {
+  const member = signedInCustomer();
+  const drinks = drinkCount(readCart()) * getSettings().loyalty.pointsPerDrink;
+  return `
+    <div class="member-box">
+      ${member
+        ? `<p class="member-box__line"></p>`
+        : `<p>${t("loyalty.invite", { n: drinks })}</p>
+           <div class="member-box__links">
+             <a class="button button--small" href="login.html?next=menu.html">${t("loyalty.login")}</a>
+             <a class="button button--small button--light" href="login.html?mode=register&next=menu.html">${t("loyalty.register")}</a>
+           </div>
+           <p class="admin__hint">${t("loyalty.guest")}</p>`}
+    </div>
+    <form class="cart-window__checkout">
+      <label class="pickup">
+        <span>${t("cart.name")} <span class="pickup__required" aria-hidden="true">*</span></span>
+        <input name="pickup" required maxlength="40" autocomplete="given-name" placeholder="${t("cart.namePlaceholder")}">
+      </label>
+      <label class="pickup">
+        <span>${t("cart.phone")} <span class="pickup__required" aria-hidden="true">*</span></span>
+        <input name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="(514) 555-0142">
+      </label>
+      <label class="pickup">
+        <span>${t("cart.pickupTime")}</span>
+        <input name="pickupTime" type="time" step="300">
+        <small class="admin__hint">${t("cart.pickupHint")}</small>
+      </label>
+      <button type="submit" class="button">${t("cart.checkout")}</button>
+      <p class="cart-window__notice" role="status"></p>
+    </form>`;
+}
 
 function setupOnlineCheckout(body) {
   // Name and phone are required: the browser blocks the submit and shows a
@@ -146,8 +172,18 @@ function setupOnlineCheckout(body) {
   const checkout = body.querySelector(".cart-window__checkout");
   const pickup = checkout.elements.pickup;
   const phone = checkout.elements.phone;
-  pickup.value = localStorage.getItem(NAME_KEY) || "";
-  phone.value = localStorage.getItem(PHONE_KEY) || "";
+  const pickupTime = checkout.elements.pickupTime;
+  const member = signedInCustomer();
+
+  if (member) {
+    body.querySelector(".member-box__line").textContent = t("loyalty.signedIn", {
+      name: member.name.split(" ")[0],
+      points: member.points,
+      n: drinkCount(readCart()) * getSettings().loyalty.pointsPerDrink,
+    });
+  }
+  pickup.value = localStorage.getItem(NAME_KEY) || member?.name || "";
+  phone.value = localStorage.getItem(PHONE_KEY) || member?.phone || "";
   pickup.addEventListener("input", () => localStorage.setItem(NAME_KEY, pickup.value.trim()));
 
   // A North American number: 10 digits (or 11 starting with 1), any spacing or dashes
@@ -162,61 +198,29 @@ function setupOnlineCheckout(body) {
   });
   checkPhone();
 
+  // Pickup time is optional; if given it must be later today, before closing
+  const day = new Date().getDay();
+  const hours = getSettings().hours;
+  const close = day === 0 || day === 6 ? hours.weekend[1] : hours.weekday[1];
+  const checkPickup = () => {
+    if (!pickupTime.value) return pickupTime.setCustomValidity("");
+    const chosen = atTime(dateKey(new Date()), pickupTime.value);
+    const tooSoon = chosen < new Date(Date.now() + 5 * 60000);
+    const tooLate = pickupTime.value > close;
+    pickupTime.setCustomValidity(tooSoon || tooLate ? t("cart.pickupError", { close }) : "");
+  };
+  pickupTime.max = close;
+  pickupTime.addEventListener("input", checkPickup);
+
   checkout.addEventListener("submit", (event) => {
     event.preventDefault();
     if (!pickup.value.trim()) pickup.value = "";
+    checkPickup();
     if (!checkout.reportValidity()) return;
     // Save the order, empty the bag, and show the order code
-    const order = addOrder(readCart(), pickup.value.trim(), phone.value);
-    localStorage.removeItem(CART_KEY);
-    renderCart();
-    cartWindow.querySelector(".cart-window__body").innerHTML = `
-      <div class="order-done">
-        <p class="order-done__thanks"></p>
-        <p class="order-done__label">${t("cart.code")}</p>
-        <p class="order-done__code"></p>
-        <p>${t("cart.paymentSoon")}</p>
-      </div>`;
-    cartWindow.querySelector(".order-done__code").textContent = order.code;
-    cartWindow.querySelector(".order-done__thanks").textContent = t("cart.placed", { name: order.customerName });
-  });
-}
-
-// ---------- Counter checkout (staff) ----------
-
-function posCheckoutHTML() {
-  return `
-    <form class="cart-window__checkout">
-      <label class="pickup">
-        <span>${t("pos.customer")} <span class="pickup__required" aria-hidden="true">*</span></span>
-        <input name="pickup" required maxlength="40" autocomplete="off" placeholder="${t("pos.customerPlaceholder")}">
-      </label>
-      <fieldset class="pay">
-        <legend>${t("pos.payment")} <span class="pickup__required" aria-hidden="true">*</span></legend>
-        <label class="pay__choice"><input type="radio" name="payment" value="cash" required><span>${t("payment.cash")}</span></label>
-        <label class="pay__choice"><input type="radio" name="payment" value="card"><span>${t("payment.card")}</span></label>
-      </fieldset>
-      <div class="pay__buttons">
-        <button type="button" class="button button--light" data-bill>${t("pos.printBill")}</button>
-        <button type="submit" class="button">${t("pos.send")}</button>
-      </div>
-    </form>`;
-}
-
-function setupPosCheckout(body) {
-  const checkout = body.querySelector(".cart-window__checkout");
-  checkout.querySelector("[data-bill]").addEventListener("click", () => {
-    printBill(readCart(), checkout.elements.pickup.value.trim());
-  });
-  checkout.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const pickup = checkout.elements.pickup;
-    if (!pickup.value.trim()) pickup.value = "";
-    if (!checkout.reportValidity()) return;
-    const order = addOrder(readCart(), pickup.value.trim(), "", {
-      source: "counter",
-      takenBy: sessionStorage.getItem(SESSION_KEY),
-      payment: checkout.elements.payment.value,
+    const order = addOrder(readCart(), pickup.value.trim(), phone.value, {
+      customerId: member?.id || null,
+      pickupAt: pickupTime.value ? atTime(dateKey(new Date()), pickupTime.value).toISOString() : null,
     });
     localStorage.removeItem(CART_KEY);
     renderCart();
@@ -225,6 +229,171 @@ function setupPosCheckout(body) {
         <p class="order-done__thanks"></p>
         <p class="order-done__label">${t("cart.code")}</p>
         <p class="order-done__code"></p>
+        <p class="order-done__when"></p>
+        <p>${t("cart.paymentSoon")}</p>
+        ${member ? `<a class="button button--small" href="account.html">${t("loyalty.track")}</a>` : ""}
+      </div>`;
+    cartWindow.querySelector(".order-done__code").textContent = order.code;
+    cartWindow.querySelector(".order-done__thanks").textContent = t("cart.placed", { name: order.customerName });
+    cartWindow.querySelector(".order-done__when").textContent = order.pickupAt
+      ? t("cart.readyAt", { time: pickupTime.value })
+      : t("cart.readyNow");
+  });
+}
+
+// ---------- Counter checkout (staff) ----------
+
+function posCheckoutHTML(subtotal) {
+  const quick = [5, 10, 20, 50];
+  return `
+    <form class="cart-window__checkout">
+      <label class="pickup">
+        <span>${t("pos.customer")} <span class="pickup__required" aria-hidden="true">*</span></span>
+        <input name="pickup" required maxlength="40" autocomplete="off" placeholder="${t("pos.customerPlaceholder")}">
+      </label>
+      <label class="pickup">
+        <span>${t("pos.memberPhone")}</span>
+        <input name="member" type="tel" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="(514) 555-0123">
+      </label>
+      <div class="member-found" aria-live="polite"></div>
+      <div class="pos-total"></div>
+      <fieldset class="pay">
+        <legend>${t("pos.payment")} <span class="pickup__required" aria-hidden="true">*</span></legend>
+        <label class="pay__choice"><input type="radio" name="payment" value="cash" required><span>${t("payment.cash")}</span></label>
+        <label class="pay__choice"><input type="radio" name="payment" value="card"><span>${t("payment.card")}</span></label>
+      </fieldset>
+      <div class="cash" hidden>
+        <div class="cash__screen">
+          <span>${t("pos.received")}</span>
+          <output class="cash__amount">$0.00</output>
+        </div>
+        <div class="cash__quick">
+          ${quick.map((n) => `<button type="button" data-quick="${n}">${money(n)}</button>`).join("")}
+          <button type="button" data-quick="exact">${t("pos.exact")}</button>
+        </div>
+        <div class="cash__keys">
+          ${["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "back"].map((k) => `<button type="button" data-key="${k}" ${k === "back" ? `aria-label="${t("kiosk.back")}"` : ""}>${k === "back" ? "&#9003;" : k}</button>`).join("")}
+        </div>
+        <p class="cash__change" aria-live="polite"></p>
+      </div>
+      <div class="pay__buttons">
+        <button type="button" class="button button--light" data-bill>${t("pos.printBill")}</button>
+        <button type="submit" class="button">${t("pos.send")}</button>
+      </div>
+    </form>`;
+}
+
+function setupPosCheckout(body, itemsSubtotal) {
+  const checkout = body.querySelector(".cart-window__checkout");
+  const memberInput = checkout.elements.member;
+  const memberBox = body.querySelector(".member-found");
+  const totalBox = body.querySelector(".pos-total");
+  const cashBox = body.querySelector(".cash");
+  const pointValue = getSettings().loyalty.pointValue;
+  let member = null;
+  let usePoints = false;
+  let cents = 0; // cash received, typed like a register: 1, 2, 5 → $1.25
+
+  // Points pay for whole dollars of the bill, at most what the member has
+  const pointsToUse = () => (member && usePoints ? Math.min(member.points, Math.floor(itemsSubtotal / pointValue)) : 0);
+  const discount = () => pointsToUse() * pointValue;
+  const toPay = () => Math.round(cartTotalWithTax(itemsSubtotal - discount()) * 100) / 100;
+
+  function showTotals() {
+    totalBox.innerHTML = discount()
+      ? `<p class="cart-window__sum"><span>${t("pos.pointsDiscount", { n: pointsToUse() })}</span><span>−${money(discount())}</span></p>
+         <p class="cart-window__sum cart-window__sum--total"><span>${t("pos.toPay")}</span><span>${money(toPay())}</span></p>`
+      : "";
+    showCash();
+  }
+
+  function showCash() {
+    const isCash = checkout.elements.payment.value === "cash";
+    cashBox.hidden = !isCash;
+    const received = cents / 100;
+    cashBox.querySelector(".cash__amount").textContent = money(received);
+    const change = cashBox.querySelector(".cash__change");
+    const send = checkout.querySelector("[type=submit]");
+    if (!isCash) {
+      send.setCustomValidity("");
+      return;
+    }
+    if (received >= toPay()) {
+      change.textContent = t("pos.change", { amount: money(received - toPay()) });
+      change.className = "cash__change is-ok";
+      send.setCustomValidity("");
+    } else {
+      change.textContent = t("pos.short", { amount: money(toPay() - received) });
+      change.className = "cash__change is-short";
+      send.setCustomValidity(t("pos.short", { amount: money(toPay() - received) }));
+    }
+  }
+
+  // Member lookup by phone (they must have signed up on the website first)
+  memberInput.addEventListener("input", () => {
+    member = findCustomerByPhone(memberInput.value);
+    usePoints = false;
+    memberBox.innerHTML = "";
+    if (member) {
+      memberBox.innerHTML = `<p class="member-found__name"></p>
+        ${member.points > 0 ? `<label class="field--check"><input type="checkbox" data-use> ${t("pos.usePoints", { n: Math.min(member.points, Math.floor(itemsSubtotal / pointValue)), amount: money(Math.min(member.points, Math.floor(itemsSubtotal / pointValue)) * pointValue) })}</label>` : ""}`;
+      memberBox.querySelector(".member-found__name").textContent = t("pos.memberFound", { name: member.name, points: member.points, n: drinkCount(readCart()) * getSettings().loyalty.pointsPerDrink });
+      memberBox.querySelector("[data-use]")?.addEventListener("change", (event) => {
+        usePoints = event.target.checked;
+        showTotals();
+      });
+      if (!checkout.elements.pickup.value) checkout.elements.pickup.value = member.name.split(" ")[0];
+    } else if (memberInput.value.replace(/\D/g, "").length >= 10) {
+      memberBox.innerHTML = `<p class="admin__hint">${t("pos.noMember")}</p>`;
+    }
+    showTotals();
+  });
+
+  checkout.querySelectorAll("input[name=payment]").forEach((radio) => radio.addEventListener("change", showCash));
+  cashBox.querySelectorAll("[data-key]").forEach((key) => key.addEventListener("click", () => {
+    const k = key.dataset.key;
+    if (k === "back") cents = Math.floor(cents / 10);
+    else if (String(cents).length < 7) cents = Number(`${cents}${k}`);
+    showCash();
+  }));
+  cashBox.querySelectorAll("[data-quick]").forEach((key) => key.addEventListener("click", () => {
+    cents = key.dataset.quick === "exact" ? Math.round(toPay() * 100) : Number(key.dataset.quick) * 100;
+    showCash();
+  }));
+  showTotals();
+
+  checkout.querySelector("[data-bill]").addEventListener("click", () => {
+    printBill(readCart(), checkout.elements.pickup.value.trim(), discount());
+  });
+  checkout.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const pickup = checkout.elements.pickup;
+    if (!pickup.value.trim()) pickup.value = "";
+    showCash();
+    if (!checkout.reportValidity()) return;
+    // Work out every amount first: spending the points changes the member's balance
+    const used = pointsToUse();
+    const due = toPay();
+    const isCash = checkout.elements.payment.value === "cash";
+    if (used) spendPoints(member.id, used);
+    const order = addOrder(readCart(), pickup.value.trim(), member ? member.phone : "", {
+      source: "counter",
+      takenBy: sessionStorage.getItem(SESSION_KEY),
+      payment: checkout.elements.payment.value,
+      customerId: member?.id || null,
+      pointsUsed: used,
+      discount: used * pointValue,
+      cashReceived: isCash ? cents / 100 : null,
+      change: isCash ? Math.round((cents / 100 - due) * 100) / 100 : null,
+    });
+    localStorage.removeItem(CART_KEY);
+    renderCart();
+    cartWindow.querySelector(".cart-window__body").innerHTML = `
+      <div class="order-done">
+        <p class="order-done__thanks"></p>
+        <p class="order-done__label">${t("cart.code")}</p>
+        <p class="order-done__code"></p>
+        <p class="order-done__change"></p>
         <div class="pay__buttons">
           <button type="button" class="button button--light" data-receipt>${t("pos.printReceipt")}</button>
           <button type="button" class="button" data-new>${t("pos.newOrder")}</button>
@@ -232,7 +401,8 @@ function setupPosCheckout(body) {
       </div>`;
     cartWindow.querySelector(".order-done__code").textContent = order.code;
     cartWindow.querySelector(".order-done__thanks").textContent = t("pos.sent", { name: order.customerName, payment: t(`payment.${order.payment}`) });
-    cartWindow.querySelector("[data-receipt]").addEventListener("click", () => printReceipt(order));
+    cartWindow.querySelector(".order-done__change").textContent = order.change !== null ? t("pos.change", { amount: money(order.change) }) : "";
+    cartWindow.querySelector("[data-receipt]").addEventListener("click", () => printReceipt(findOrder(order.id)));
     cartWindow.querySelector("[data-new]").addEventListener("click", () => cartWindow.close());
   });
 }
@@ -368,3 +538,12 @@ try {
 window.addEventListener("resize", () => {
   if (cartButton.style.left) placeButton(parseFloat(cartButton.style.left), parseFloat(cartButton.style.top));
 });
+
+// Customer pages: "Log In" becomes "My account" once a member is signed in
+if (!POS_MODE) {
+  const loginLink = document.querySelector(".login-link");
+  if (loginLink && signedInCustomer()) {
+    loginLink.href = "account.html";
+    loginLink.textContent = t("nav.account");
+  }
+}
