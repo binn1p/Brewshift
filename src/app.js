@@ -91,7 +91,7 @@ function createApp(shop) {
   app.use("/api/staff", staffRouter());
   app.use("/api/kiosk", kioskRouter());
   app.use("/api/punches", punchesRouter(shop));
-  app.use("/api/queue", queueRouter());
+  app.use("/api/queue", queueRouter(shop));
   app.use("/api/admin", adminRouter(shop));
   app.use("/api/admin/shifts", requireLogin, requireRole("owner"), ownerShiftsRouter());
   app.use("/api/shifts", myShiftsRouter());

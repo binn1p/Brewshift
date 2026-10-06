@@ -186,3 +186,55 @@ async function syncShifts() {
   saveDb(db);
   return true;
 }
+
+// Orders from the server (owner's view: every order), copied into this browser's store in
+// the shape the order pages already use. The browser's menu gives each drink's promo.
+function toLocalOrder(order, promos) {
+  return {
+    id: order.id,
+    code: order.code,
+    customerName: order.customerName,
+    phone: order.phone || "",
+    source: order.source || "online",
+    takenBy: order.takenBy || null,
+    payment: order.payment || null,
+    lines: order.items.map((item) => ({
+      id: item.menuItemId,
+      qty: item.quantity,
+      unitPrice: item.unitPriceCents / 100,
+      promo: promos[item.menuItemId] || null,
+      options: item.options,
+      name: item.name,
+    })),
+    status: order.status,
+    createdAt: order.createdAt,
+    history: order.history || [],
+    customerId: order.customerId || null,
+    pickupAt: order.pickupTime ? new Date(`${dateKey(new Date(order.createdAt))}T${order.pickupTime}:00`).toISOString() : null,
+    pointsEarned: order.pointsEarned || 0,
+    pointsUsed: order.pointsUsed || 0,
+    discount: (order.discountCents || 0) / 100,
+    cashReceived: order.cashReceived ?? null,
+    change: order.change ?? null,
+  };
+}
+
+async function syncOrders(url = "/api/admin/orders") {
+  const result = await api("GET", url);
+  if (!result.ok) return false;
+  const db = loadDb();
+  const menu = db.menu && db.menu.length ? db.menu : MENU_SEED;
+  const promos = Object.fromEntries(menu.map((drink) => [drink.id, drink.promo || null]));
+  db.orders = result.data.map((order) => toLocalOrder(order, promos));
+  saveDb(db);
+  return true;
+}
+
+// Owner edits: the drinks of an order, or deleting it. The server works out the totals.
+function pushOrderEdit(code, lines) {
+  return api("PATCH", `/api/admin/orders/${code}`, { lines: lines.map((line) => ({ id: line.id, qty: line.qty, options: line.options })) });
+}
+
+function pushOrderDelete(code) {
+  return api("PATCH", `/api/admin/orders/${code}`, { status: "deleted" });
+}

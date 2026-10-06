@@ -153,4 +153,4 @@ function priceOrder(lines, taxRates, discountCents = 0) {
   return { lines: priced, itemsCents, discountCents: itemsCents - subtotalCents, subtotalCents, taxes, totalCents };
 }
 
-module.exports = { makeCode, checkOrder, checkCounterOrder, priceOrder };
+module.exports = { makeCode, checkOrder, checkCounterOrder, checkLines, priceOrder };

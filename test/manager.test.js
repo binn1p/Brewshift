@@ -128,7 +128,7 @@ test("a status change is logged with who made it", async () => {
   const order = orders.find((o) => o.code === code);
   assert.equal(order.history.length, 1);
   assert.equal(order.history[0].by, staff.id);
-  assert.equal(order.history[0].to, "in_progress");
+  assert.equal(order.history[0].after.status, "in_progress");
 });
 
 test("the owner sees every order with phone numbers, staff cannot (403)", async () => {

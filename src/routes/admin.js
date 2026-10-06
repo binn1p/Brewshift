@@ -9,6 +9,7 @@ const { toCsv } = require("../lib/csv");
 const { checkDrink, slugify } = require("../lib/menu");
 const { saveImage } = require("../lib/uploads");
 const { checkSettings } = require("../lib/settings");
+const { checkLines, priceOrder } = require("../lib/orders");
 const { loyaltyRules } = require("../lib/customers");
 const { requireLogin, requireRole } = require("../middleware/auth");
 
@@ -213,6 +214,48 @@ function adminRouter(shop) {
       });
       if (result.error) return res.status(result.error).json({ error: result.message });
       res.json({ code: result.order.code, status: result.order.status });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Edit an order's drinks, or delete it (owner). Totals are worked out again on the server.
+  router.patch("/orders/:code", async (req, res, next) => {
+    try {
+      const code = req.params.code.toUpperCase();
+      const result = await exclusive(async () => {
+        const orders = await readJson("orders", []);
+        const order = orders.find((o) => o.code === code);
+        if (!order) return { error: 404, message: "No order with that code." };
+        order.history = order.history || [];
+        const at = new Date().toISOString();
+        if (req.body?.status === "deleted") {
+          order.history.push({ at, by: req.user.id, action: "deleted", before: { status: order.status }, after: { status: "deleted" } });
+          order.status = "deleted";
+        } else if (Array.isArray(req.body?.lines)) {
+          const menu = await readJson("menu");
+          const checked = checkLines(req.body.lines.map((l) => ({ id: l.id, quantity: l.qty, options: l.options })), menu);
+          if (checked.error) return { error: 400, message: checked.error };
+          const before = order.items.map((i) => ({ id: i.menuItemId, qty: i.quantity, options: i.options }));
+          const priced = priceOrder(checked.lines, shop.taxes, order.discountCents || 0);
+          order.items = priced.lines.map((line) => ({
+            menuItemId: line.drink.id,
+            name: line.drink.name.en,
+            quantity: line.quantity,
+            options: line.options,
+            unitPriceCents: line.unitCents,
+            lineCents: line.lineCents,
+          }));
+          Object.assign(order, { subtotalCents: priced.subtotalCents, taxes: priced.taxes, totalCents: priced.totalCents });
+          order.history.push({ at, by: req.user.id, action: "edited", before: { lines: before }, after: { lines: req.body.lines } });
+        } else {
+          return { error: 400, message: "Send the new drinks, or the status deleted." };
+        }
+        await writeJson("orders", orders);
+        return { order };
+      });
+      if (result.error) return res.status(result.error).json({ error: result.message });
+      res.json({ code: result.order.code, status: result.order.status, totalCents: result.order.totalCents });
     } catch (error) {
       next(error);
     }

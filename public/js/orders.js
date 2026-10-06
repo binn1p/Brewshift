@@ -152,4 +152,6 @@ document.getElementById("csv").addEventListener("click", () => {
 
 document.getElementById("print").addEventListener("click", () => window.print());
 
-if (isManager(manager)) setupPeriodPicker(document.getElementById("period"), render);
+if (isManager(manager)) {
+  syncOrders().then(() => setupPeriodPicker(document.getElementById("period"), render));
+}

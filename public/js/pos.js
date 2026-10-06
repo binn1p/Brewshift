@@ -61,7 +61,10 @@ function showToday() {
   if (!todayWindow.open) todayWindow.showModal();
 }
 
-document.getElementById("today").addEventListener("click", showToday);
+document.getElementById("today").addEventListener("click", async () => {
+  await syncOrders("/api/queue/today");
+  showToday();
+});
 
 // Shared iPad: back to the kiosk after 5 idle minutes
 let posIdle = setTimeout(() => window.location.replace("kiosk.html"), 300000);

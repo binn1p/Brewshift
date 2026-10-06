@@ -9,7 +9,12 @@ const { loyaltyRules } = require("../lib/customers");
 const NEXT = { received: "in_progress", in_progress: "ready", ready: "picked_up" };
 const OPEN = ["received", "in_progress", "ready"];
 
-function queueRouter() {
+// The date (YYYY-MM-DD) of a moment, as seen in the café's time zone
+function dayKey(date, timeZone) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+function queueRouter(shop) {
   const router = express.Router();
   router.use(requireLogin, requireRole("staff", "owner"));
 
@@ -35,6 +40,17 @@ function queueRouter() {
     }
   });
 
+  // Every order taken today (any status), for the counter's "Today's orders"
+  router.get("/today", async (req, res, next) => {
+    try {
+      const today = dayKey(new Date(), shop.timeZone);
+      const orders = (await readJson("orders", [])).filter((o) => dayKey(new Date(o.createdAt), shop.timeZone) === today);
+      res.json(orders);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Move one order to its next status. Each change is logged with who made it.
   router.post("/:code/status", async (req, res, next) => {
     try {
@@ -48,7 +64,7 @@ function queueRouter() {
           return { error: 409, message: `An order that is ${order.status} cannot become ${wanted}.` };
         }
         order.history = order.history || [];
-        order.history.push({ at: new Date().toISOString(), by: req.user.id, from: order.status, to: wanted });
+        order.history.push({ at: new Date().toISOString(), by: req.user.id, action: "status", before: { status: order.status }, after: { status: wanted } });
         order.status = wanted;
         // An online order is paid at pickup: that is when a member earns points
         if (wanted === "picked_up" && order.customerId && !order.pointsEarned) {

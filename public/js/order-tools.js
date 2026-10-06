@@ -176,13 +176,17 @@ function openOrderEditor(order, onDone) {
     dialog.querySelector(".window__close").addEventListener("click", () => dialog.close());
     dialog.querySelector("[data-save]").addEventListener("click", () => {
       if (!lines.length) return;
-      if (JSON.stringify(lines) !== JSON.stringify(order.lines)) changeOrder(order.id, me.id, "edited", { lines });
+      if (JSON.stringify(lines) !== JSON.stringify(order.lines)) {
+        changeOrder(order.id, me.id, "edited", { lines });
+        pushOrderEdit(order.code, lines);
+      }
       dialog.close();
       onDone?.();
     });
     dialog.querySelector("[data-delete]").addEventListener("click", () => {
       if (!confirm(t("history.deleteConfirm", { code: order.code }))) return;
       changeOrder(order.id, me.id, "deleted", { status: "deleted" });
+      pushOrderDelete(order.code);
       dialog.close();
       onDone?.();
     });

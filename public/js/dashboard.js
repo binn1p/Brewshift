@@ -48,6 +48,6 @@ function showTiles() {
 }
 
 if (isManager(manager)) {
-  showTiles();
-  setInterval(showTiles, 30000);
+  syncOrders().then(showTiles);
+  setInterval(async () => { await syncOrders(); showTiles(); }, 30000);
 }
