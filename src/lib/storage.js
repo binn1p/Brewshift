@@ -6,7 +6,8 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-const DATA_DIR = path.join(__dirname, "..", "..", "data");
+// DATA_DIR can be changed by the tests so they never touch the real data
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "..", "data");
 
 function filePath(name) {
   return path.join(DATA_DIR, `${name}.json`);
