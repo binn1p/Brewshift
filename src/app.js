@@ -9,6 +9,8 @@ const { readJson } = require("./lib/storage");
 const { ordersRouter } = require("./routes/orders");
 const { authRouter } = require("./routes/auth");
 const { staffRouter } = require("./routes/staff");
+const { kioskRouter } = require("./routes/kiosk");
+const { punchesRouter } = require("./routes/punches");
 
 function createApp(shop) {
   const app = express();
@@ -57,6 +59,8 @@ function createApp(shop) {
   app.use("/api/orders", ordersRouter(shop));
   app.use("/api/auth", authRouter());
   app.use("/api/staff", staffRouter());
+  app.use("/api/kiosk", kioskRouter());
+  app.use("/api/punches", punchesRouter(shop));
 
   // Development only: a visual check page and a list of every order (with phone numbers).
   // Not available in production.
