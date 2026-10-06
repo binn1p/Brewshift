@@ -7,6 +7,7 @@ const { publicUser, readUsers } = require("../lib/users");
 const { weekHours } = require("../lib/punches");
 const { toCsv } = require("../lib/csv");
 const { checkDrink, slugify } = require("../lib/menu");
+const { saveImage } = require("../lib/uploads");
 const { requireLogin, requireRole } = require("../middleware/auth");
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -147,6 +148,35 @@ function adminRouter(shop) {
     try {
       res.json(await readJson("menu"));
     } catch (error) {
+      next(error);
+    }
+  });
+
+  // Home page tiles: which drink is the seasonal one and which is the promo (owner only)
+  router.put("/settings/home", async (req, res, next) => {
+    try {
+      const { seasonalDrink, promoDrink } = req.body || {};
+      const menu = await readJson("menu");
+      const known = (id) => typeof id === "string" && menu.some((drink) => drink.id === id);
+      const errors = {};
+      if (!known(seasonalDrink)) errors.seasonalDrink = "Choose a drink from the menu.";
+      if (!known(promoDrink)) errors.promoDrink = "Choose a drink from the menu.";
+      if (Object.keys(errors).length > 0) return res.status(400).json({ error: "Please check the form.", fields: errors });
+      const home = { seasonalDrink, promoDrink };
+      await exclusive(() => writeJson("home", home));
+      res.json(home);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Upload a drink photo; returns its address to put on the drink
+  router.post("/uploads", async (req, res, next) => {
+    try {
+      const url = await saveImage(req.body?.dataUrl);
+      res.status(201).json({ url });
+    } catch (error) {
+      if (error.status) return res.status(error.status).json({ error: error.message });
       next(error);
     }
   });

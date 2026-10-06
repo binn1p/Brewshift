@@ -10,12 +10,17 @@ function availabilityState(drink) {
   return drink.soldOut.until === null ? "outUntil" : "outToday";
 }
 
-function setAvailability(drink, state) {
-  drink.available = state !== "hidden";
-  if (state === "outToday") drink.soldOut = { until: dateKey(new Date()) };
-  else if (state === "outUntil") drink.soldOut = { until: null };
-  else drink.soldOut = null;
-  saveMenuItem(drink);
+// Sold out and hidden are saved on the server, so customers see them on any device
+async function setAvailability(drink, state) {
+  const soldOut = state === "outToday" ? { until: dateKey(new Date()) }
+    : state === "outUntil" ? { until: null }
+    : null;
+  const result = await api("PATCH", `/api/admin/menu/${drink.id}`, { available: state !== "hidden", soldOut });
+  if (!result.ok) {
+    alert(t("kiosk.offline"));
+    return;
+  }
+  await syncMenu("/api/admin/menu");
 }
 
 function showDrinks() {
@@ -40,8 +45,8 @@ function showDrinks() {
     card.querySelector(".madmin__name").textContent = drinkLabel(drink);
     card.querySelector(".madmin__vi").textContent = drink.viName;
     card.querySelector(".madmin__price").textContent = money(drink.price) + (drink.promo ? ` · ${t("madmin.promo21")}` : "");
-    card.querySelector("select").addEventListener("change", (event) => {
-      setAvailability(drink, event.target.value);
+    card.querySelector("select").addEventListener("change", async (event) => {
+      await setAvailability(drink, event.target.value);
       showDrinks();
     });
     card.querySelector("button").addEventListener("click", () => openEditor(drink));
@@ -61,6 +66,14 @@ function escapeAttr(text) {
 
 function selectOf(name, options, picked) {
   return `<select name="${name}">${options.map(([value, label]) => `<option value="${value}" ${String(value) === String(picked) ? "selected" : ""}>${label}</option>`).join("")}</select>`;
+}
+
+// A photo picked in this browser is a data: address; it is uploaded and replaced by its server address
+async function uploadIfNew(src) {
+  if (!src || !src.startsWith("data:")) return src || "";
+  const result = await api("POST", "/api/admin/uploads", { dataUrl: src });
+  if (!result.ok) throw new Error(result.status === 413 ? t("photos.full") : t("kiosk.offline"));
+  return result.data.url;
 }
 
 function openEditor(drink) {
@@ -144,7 +157,7 @@ function openEditor(drink) {
   editor.querySelector(".window__close").addEventListener("click", close);
   form.querySelector("[data-cancel]").addEventListener("click", close);
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const f = form.elements;
     const price = Number(f.price.value);
@@ -156,11 +169,10 @@ function openEditor(drink) {
     const tagEn = f.tagEn.value.trim();
     const promo = f.promo.value === "2for1" ? { buy: 2, pay: 1 } : null;
     const item = {
-      ...d,
       name: { en: f.nameEn.value.trim(), fr: f.nameFr.value.trim() || f.nameEn.value.trim() },
       viName: f.viName.value.trim(),
       price,
-      tag: tagEn ? { en: tagEn, fr: f.tagFr.value.trim() || tagEn } : promo ? { en: "2 for 1", fr: "2 pour 1" } : undefined,
+      tag: tagEn ? { en: tagEn, fr: f.tagFr.value.trim() || tagEn } : promo ? { en: "2 for 1", fr: "2 pour 1" } : null,
       promo,
       recipe: { milk: f.milk.value, sugar: Number(f.sugar.value), ice: f.hot.checked ? null : Number(f.ice.value) },
       ingredients: { en: lines(f.ingEn.value), fr: lines(f.ingFr.value).length ? lines(f.ingFr.value) : lines(f.ingEn.value) },
@@ -168,13 +180,28 @@ function openEditor(drink) {
       photo: photos.photo,
       sidePhoto: photos.sidePhoto,
     };
-    if (!item.tag) delete item.tag;
+    // Photos are uploaded first (new ones only), then the drink is saved with their addresses
+    let photo;
+    let sidePhoto;
     try {
-      saveMenuItem(item);
-    } catch {
-      form.querySelector(".admin__error").textContent = t("photos.full");
+      photo = await uploadIfNew(photos.photo);
+      sidePhoto = await uploadIfNew(photos.sidePhoto);
+    } catch (error) {
+      form.querySelector(".admin__error").textContent = error.message;
       return;
     }
+    item.photo = photo;
+    if (sidePhoto) item.sidePhoto = sidePhoto;
+
+    const result = isNew
+      ? await api("POST", "/api/admin/menu", item)
+      : await api("PATCH", `/api/admin/menu/${d.id}`, item);
+    if (!result.ok) {
+      form.querySelector(".admin__error").textContent = result.status === 0 ? t("kiosk.offline") : t("madmin.required");
+      return;
+    }
+    await syncMenu("/api/admin/menu");
+
     close();
     showDrinks();
   });
@@ -184,4 +211,6 @@ function openEditor(drink) {
 
 document.getElementById("add").addEventListener("click", () => openEditor(null));
 
-if (isManager(manager)) showDrinks();
+if (isManager(manager)) {
+  syncMenu("/api/admin/menu").then(showDrinks);
+}

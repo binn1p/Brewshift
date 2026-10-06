@@ -185,3 +185,54 @@ test("a deleted drink is gone", async () => {
   const again = await call("DELETE", `/api/admin/menu/${created.data.id}`, { cookie: owner });
   assert.equal(again.status, 404);
 });
+
+test("sold out today is saved on the server and shows on the customer menu", async () => {
+  const owner = await ownerCookie();
+  const created = await call("POST", "/api/admin/menu", { cookie: owner, body: drinkForm({ name: { en: "Sold Test", fr: "Test" } }) });
+  const today = new Date().toISOString().slice(0, 10);
+  const soldOut = await call("PATCH", `/api/admin/menu/${created.data.id}`, { cookie: owner, body: { soldOut: { until: today } } });
+  assert.equal(soldOut.status, 200);
+
+  const publicMenu = await call("GET", "/api/menu");
+  assert.deepEqual(publicMenu.data.find((d) => d.id === created.data.id).soldOut, { until: today });
+});
+
+test("a drink can be saved with an empty story and a cleared label", async () => {
+  const owner = await ownerCookie();
+  const created = await call("POST", "/api/admin/menu", {
+    cookie: owner,
+    body: drinkForm({ name: { en: "Empty Story", fr: "Vide" }, story: { en: "", fr: "" }, tag: null }),
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.data.tag, null);
+});
+
+test("home tile choices: anyone can read them, only the owner can change them", async () => {
+  const anonymous = await call("GET", "/api/settings/home");
+  assert.equal(anonymous.status, 200);
+  assert.equal(typeof anonymous.data.seasonalDrink, "string");
+
+  const owner = await ownerCookie();
+  const changed = await call("PUT", "/api/admin/settings/home", {
+    cookie: owner,
+    body: { seasonalDrink: "orange-coffee", promoDrink: "hot-milk-coffee" },
+  });
+  assert.equal(changed.status, 200);
+
+  const read = await call("GET", "/api/settings/home");
+  assert.deepEqual(read.data, { seasonalDrink: "orange-coffee", promoDrink: "hot-milk-coffee" });
+
+  const unknown = await call("PUT", "/api/admin/settings/home", {
+    cookie: owner,
+    body: { seasonalDrink: "unicorn", promoDrink: "hot-milk-coffee" },
+  });
+  assert.equal(unknown.status, 400);
+  assert.ok(unknown.data.fields.seasonalDrink);
+
+  const staff = await staffMember();
+  const denied = await call("PUT", "/api/admin/settings/home", {
+    cookie: staff.cookie,
+    body: { seasonalDrink: "orange-coffee", promoDrink: "hot-milk-coffee" },
+  });
+  assert.equal(denied.status, 403);
+});

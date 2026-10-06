@@ -29,3 +29,39 @@ function mirrorUser(user) {
   saveDb(db);
   return merged;
 }
+
+// Copies the menu from the server into this browser's store, so the pages that
+// read the store (menu, bag, drink window) show the server's menu.
+// url: "/api/menu" (customers, on-sale drinks) or "/api/admin/menu" (managers, all drinks).
+async function syncMenu(url) {
+  const result = await api("GET", url);
+  if (!result.ok) return false;
+  const db = loadDb();
+  const local = new Map(db.menu.map((drink) => [drink.id, drink]));
+  const seeded = (id) => MENU_SEED.some((drink) => drink.id === id);
+  db.menu = result.data.map((drink) => {
+    const old = local.get(drink.id) || {};
+    return {
+      ...old,
+      ...drink,
+      // Photos: the server's one, else the built-in image for the seed drinks, else the bean
+      photo: drink.photo || (seeded(drink.id) ? `images/menu/cutout/${drink.id}.png` : "images/bean.svg"),
+      sidePhoto: drink.sidePhoto || (seeded(drink.id) ? `images/menu/${drink.id}-side.jpg` : ""),
+      soldOut: drink.soldOut ?? null,
+    };
+  });
+  saveDb(db);
+  return true;
+}
+
+
+// Home page tile choices from the server, copied into this browser's settings
+// so the home page and Settings show the same drinks.
+async function syncHome() {
+  const result = await api("GET", "/api/settings/home");
+  if (!result.ok) return false;
+  const db = loadDb();
+  db.settings = { ...(db.settings || {}), home: result.data };
+  saveDb(db);
+  return true;
+}

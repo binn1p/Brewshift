@@ -25,31 +25,40 @@ function fillText(item, drink) {
   item.addEventListener("click", () => openDrinkWindow(drink));
 }
 
-getMenu().filter((drink) => drink.available).forEach((drink) => {
-  const item = document.createElement("button");
-  item.type = "button";
-  item.innerHTML = `<img class="menu-drink__photo" alt="">${drinkText(drink)}`;
+// Draws the drinks on sale. Runs again when the server menu arrives.
+function renderMenu() {
+  canvas.querySelectorAll(".menu-drink").forEach((el) => el.remove());
+  moreGrid.innerHTML = "";
+  getMenu().filter((drink) => drink.available).forEach((drink) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.innerHTML = `<img class="menu-drink__photo" alt="">${drinkText(drink)}`;
 
-  if (drink.spot) {
-    const { x, y, w, label } = drink.spot;
-    item.className = `menu-drink menu-drink--label-${label}`;
-    item.style.top = y + "%";
-    item.style.setProperty("--w", w);
-    // A label on the left grows leftwards, so pin the photo's right edge instead
-    if (label === "left") {
-      item.style.right = 100 - x - w + "%";
+    if (drink.spot) {
+      const { x, y, w, label } = drink.spot;
+      item.className = `menu-drink menu-drink--label-${label}`;
+      item.style.top = y + "%";
+      item.style.setProperty("--w", w);
+      // A label on the left grows leftwards, so pin the photo's right edge instead
+      if (label === "left") {
+        item.style.right = 100 - x - w + "%";
+      } else {
+        item.style.left = x + "%";
+      }
+      canvas.append(item);
     } else {
-      item.style.left = x + "%";
+      item.className = "menu-drink menu-drink--card";
+      moreGrid.append(item);
     }
-    canvas.append(item);
-  } else {
-    item.className = "menu-drink menu-drink--card";
-    moreGrid.append(item);
-  }
-  fillText(item, drink);
-});
+    fillText(item, drink);
+  });
 
-moreGrid.hidden = moreGrid.children.length === 0;
+  moreGrid.hidden = moreGrid.children.length === 0;
+}
+
+renderMenu();
+// Fresh menu from the server (prices, sold out, hidden drinks); draw again when it arrives
+syncMenu("/api/menu").then((ok) => { if (ok) renderMenu(); });
 
 // menu.html?drink=egg-coffee opens that drink right away (used by the home page tiles),
 // and &qty=2 starts it at that quantity (used by the promo tile)

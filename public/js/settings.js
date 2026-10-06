@@ -154,7 +154,7 @@ function readQuestions() {
   }).filter((q) => q.text.en && q.a.en && q.b.en);
 }
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const f = form.elements;
   const s = getSettings();
@@ -187,7 +187,11 @@ form.addEventListener("submit", (event) => {
     questions,
     pinnedQuestion: questions.some((q) => q.id === pinChoice) ? pinChoice : "",
   });
-  form.querySelector(".settings__saved").textContent = t("set.saved");
+  // The home page choices are also saved on the server, so the home page shows them on every device
+  const homeResult = await api("PUT", "/api/admin/settings/home", { seasonalDrink: f.seasonal.value, promoDrink: f.promo.value });
+  form.querySelector(".settings__saved").textContent = homeResult.ok ? t("set.saved") : t("kiosk.offline");
 });
 
-if (isManager(manager)) render();
+if (isManager(manager)) {
+  Promise.all([syncMenu("/api/admin/menu"), syncHome()]).then(render);
+}

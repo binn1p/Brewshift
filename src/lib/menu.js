@@ -1,6 +1,8 @@
 // Rules for a drink on the menu, used by the owner's menu tools (FR-50).
 // Prices are in dollars here and stored as given; orders copy them as cents.
 
+const { isPhotoPath } = require("./uploads");
+
 const MILKS = ["none", "condensed", "fresh", "almond", "oat", "coconut"];
 
 function isText(value, max) {
@@ -38,6 +40,30 @@ function checkDrink(input) {
     }
   }
 
+  // Optional text shown to customers
+  const pair = (v) => v && typeof v === "object" && typeof v.en === "string" && v.en.length <= 1000 && (v.fr === undefined || (typeof v.fr === "string" && v.fr.length <= 1000));
+  if (body.tag !== undefined && body.tag !== null && !(isText(body.tag.en, 40) && typeof body.tag.fr === "string")) {
+    errors.tag = "Label needs English and French text (40 characters maximum).";
+  }
+  if (body.story !== undefined && !pair(body.story)) errors.story = "Story is too long (1000 characters maximum).";
+  if (body.ingredients !== undefined) {
+    const list = (v) => Array.isArray(v) && v.length <= 20 && v.every((x) => isText(x, 120));
+    if (!body.ingredients || !list(body.ingredients.en) || (body.ingredients.fr !== undefined && !list(body.ingredients.fr))) {
+      errors.ingredients = "Ingredients must be a list of short lines.";
+    }
+  }
+  // soldOut: null (on sale), { until: null } (sold out until turned back on), { until: "YYYY-MM-DD" } (today only)
+  if (body.soldOut !== undefined && body.soldOut !== null) {
+    const u = body.soldOut.until;
+    if (typeof body.soldOut !== "object" || !(u === null || (typeof u === "string" && /^\d{4}-\d{2}-\d{2}$/.test(u)))) {
+      errors.soldOut = "Sold-out state is not valid.";
+    }
+  }
+
+  for (const key of ["photo", "sidePhoto"]) {
+    if (body[key] !== undefined && !isPhotoPath(body[key])) errors[key] = "Photo path is not valid.";
+  }
+
   if (Object.keys(errors).length > 0) return { errors };
 
   const value = {
@@ -47,7 +73,15 @@ function checkDrink(input) {
     recipe: { milk: recipe.milk, sugar: recipe.sugar, ice: recipe.ice },
     available: body.available !== false,
     promo: body.promo ?? null,
+    soldOut: body.soldOut ?? null,
   };
+  if (body.tag !== undefined) value.tag = body.tag;
+  if (body.photo !== undefined) value.photo = body.photo;
+  if (body.sidePhoto !== undefined) value.sidePhoto = body.sidePhoto;
+  if (body.story !== undefined) value.story = { en: body.story.en.trim(), fr: (body.story.fr || body.story.en).trim() };
+  if (body.ingredients !== undefined) {
+    value.ingredients = { en: body.ingredients.en, fr: body.ingredients.fr || body.ingredients.en };
+  }
   return { value };
 }
 

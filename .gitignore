@@ -9,3 +9,5 @@ node_modules/
 # Real data (orders, punches, users): never commit. Seed files like menu.json are committed.
 data/*.json
 !data/menu.json
+# Photos uploaded by the owner (real data, not committed)
+data/uploads/

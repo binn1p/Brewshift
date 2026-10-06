@@ -33,20 +33,27 @@ window.addEventListener("load", () => {
 
 // ---------- Seasonal and promo tiles from Settings ----------
 
-const homeSettings = getSettings().home;
-const seasonal = findDrink(homeSettings.seasonalDrink);
-if (seasonal) {
-  const tile = document.querySelector(".tile--seasonal");
-  tile.href = `menu.html?drink=${encodeURIComponent(seasonal.id)}`;
-  tile.querySelector(".tile__title").textContent = tr(seasonal.name);
-  tile.querySelector("p").textContent = `${seasonal.viName}: ${tr(seasonal.ingredients).join(", ")}`;
-  tile.querySelector(".tile__cta").textContent = `${money(seasonal.price)} · ${t("home.discover")}`;
-  // Built-in drinks have a top-down photo; added ones use their own photo
-  const isSeed = MENU_SEED.some((drink) => drink.id === seasonal.id);
-  const photo = new URL(isSeed ? `images/menu/${seasonal.id}-top.jpg` : seasonal.sidePhoto || seasonal.photo, document.baseURI).href;
-  tile.style.setProperty("--photo", `url("${photo}")`);
+// Draws the seasonal and promo tiles. Runs again once the server menu has arrived.
+function renderTiles() {
+  const homeSettings = getSettings().home;
+  const seasonal = findDrink(homeSettings.seasonalDrink);
+  if (seasonal) {
+    const tile = document.querySelector(".tile--seasonal");
+    tile.href = `menu.html?drink=${encodeURIComponent(seasonal.id)}`;
+    tile.querySelector(".tile__title").textContent = tr(seasonal.name);
+    tile.querySelector("p").textContent = `${seasonal.viName}: ${tr(seasonal.ingredients).join(", ")}`;
+    tile.querySelector(".tile__cta").textContent = `${money(seasonal.price)} · ${t("home.discover")}`;
+    // Built-in drinks have a top-down photo; added ones use their own photo
+    const isSeed = MENU_SEED.some((drink) => drink.id === seasonal.id);
+    const photo = new URL(isSeed ? `images/menu/${seasonal.id}-top.jpg` : seasonal.sidePhoto || seasonal.photo, document.baseURI).href;
+    tile.style.setProperty("--photo", `url("${photo}")`);
+  }
+  const promoDrink = findDrink(homeSettings.promoDrink);
+  if (promoDrink) {
+    document.querySelector(".tile--promo").href = `menu.html?drink=${encodeURIComponent(promoDrink.id)}&qty=${promoDrink.promo ? promoDrink.promo.buy : 1}`;
+  }
 }
-const promoDrink = findDrink(homeSettings.promoDrink);
-if (promoDrink) {
-  document.querySelector(".tile--promo").href = `menu.html?drink=${encodeURIComponent(promoDrink.id)}&qty=${promoDrink.promo ? promoDrink.promo.buy : 1}`;
-}
+
+renderTiles();
+// Prices, photos, sold-out state and the chosen tile drinks come from the server
+Promise.all([syncMenu("/api/menu"), syncHome()]).then(() => renderTiles());

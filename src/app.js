@@ -13,15 +13,18 @@ const { kioskRouter } = require("./routes/kiosk");
 const { punchesRouter } = require("./routes/punches");
 const { queueRouter } = require("./routes/queue");
 const { adminRouter } = require("./routes/admin");
+const { uploadsDir } = require("./lib/uploads");
 const { ownerShiftsRouter, myShiftsRouter } = require("./routes/shifts");
 const { requireLogin, requireRole } = require("./middleware/auth");
+
+const HOME_DEFAULTS = { seasonalDrink: "egg-coffee", promoDrink: "iced-milk-coffee" };
 
 function createApp(shop) {
   const app = express();
   const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
   // Read JSON bodies sent by the browser (fetch with a JSON body)
-  app.use(express.json());
+  app.use(express.json({ limit: "3mb" }));
 
   // Sessions: the server remembers who is signed in (C-4). The secret comes from
   // the environment (NFR-S4). Without one, a random secret is used for this run only.
@@ -40,6 +43,9 @@ function createApp(shop) {
   // The front end (HTML, CSS, JS) lives in public/
   app.use(express.static(path.join(__dirname, "..", "public")));
 
+  // Uploaded drink photos (public, so customers can see them)
+  app.use("/uploads", express.static(uploadsDir()));
+
   // Health check: a quick way to test that the server is alive
   app.get("/api/health", (req, res) => {
     res.json({ ok: true, time: new Date().toISOString() });
@@ -48,6 +54,15 @@ function createApp(shop) {
   // Café name, address, hours and colours for the public pages (FR-02)
   app.get("/api/shop", (req, res) => {
     res.json(shop);
+  });
+
+  // Which drinks the home page tiles show (chosen in Settings). Public, so the home page can read it.
+  app.get("/api/settings/home", async (req, res, next) => {
+    try {
+      res.json(await readJson("home", HOME_DEFAULTS));
+    } catch (error) {
+      next(error);
+    }
   });
 
   // Menu items that are on sale (FR-10). Unavailable items are left out.
