@@ -8,6 +8,13 @@ const { readUsers } = require("../lib/users");
 const { requireLogin } = require("../middleware/auth");
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// A date key (YYYY-MM-DD) moved by a number of days
+function addDays(key, days) {
+  const d = new Date(`${key}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 // Checks a shift from the owner's form. Returns { errors } or { value }.
@@ -59,6 +66,54 @@ function ownerShiftsRouter() {
         return created;
       });
       res.status(201).json(shift);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Change a shift (owner)
+  router.put("/:id", async (req, res, next) => {
+    try {
+      const checked = checkShift(req.body);
+      if (checked.errors) return res.status(400).json({ error: "Please check the form.", fields: checked.errors });
+      const staff = (await readUsers()).find((u) => u.id === checked.value.userId && u.role === "staff" && u.status === "approved");
+      if (!staff) return res.status(400).json({ error: "Choose an approved staff member.", fields: { userId: "Choose an approved staff member." } });
+      const result = await exclusive(async () => {
+        const shifts = await readJson("shifts", []);
+        const shift = shifts.find((s) => s.id === req.params.id);
+        if (!shift) return { error: 404 };
+        Object.assign(shift, checked.value);
+        await writeJson("shifts", shifts);
+        return { shift };
+      });
+      if (result.error) return res.status(404).json({ error: "No shift with that id." });
+      res.json(result.shift);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Replace the week that starts on weekStart (Sunday, YYYY-MM-DD) with a copy of the week before it
+  router.post("/copy-week", async (req, res, next) => {
+    try {
+      const weekStart = req.body?.weekStart;
+      if (typeof weekStart !== "string" || !DATE.test(weekStart)) {
+        return res.status(400).json({ error: "weekStart must look like 2026-10-11." });
+      }
+      const thisFrom = weekStart;
+      const thisTo = addDays(weekStart, 6);
+      const prevFrom = addDays(weekStart, -7);
+      const prevTo = addDays(weekStart, -1);
+      await exclusive(async () => {
+        const shifts = await readJson("shifts", []);
+        const kept = shifts.filter((s) => s.date < thisFrom || s.date > thisTo);
+        // Each copy lands 7 days after the original
+        const copies = shifts
+          .filter((s) => s.date >= prevFrom && s.date <= prevTo)
+          .map((s) => ({ ...s, id: `s_${crypto.randomBytes(4).toString("hex")}`, date: addDays(s.date, 7) }));
+        await writeJson("shifts", [...kept, ...copies]);
+      });
+      res.json({ ok: true });
     } catch (error) {
       next(error);
     }

@@ -93,7 +93,7 @@ function showRoster() {
 
 // ---------- Week grid (right) ----------
 
-function assign(userId, dayKey, slot) {
+async function assign(userId, dayKey, slot) {
   const user = getUser(userId);
   const dayNumber = atTime(dayKey, "12:00").getDay();
   const [start, end] = slotTimes(dayNumber, slot);
@@ -107,7 +107,12 @@ function assign(userId, dayKey, slot) {
   const limit = weeklyLimit(user);
   if (after > limit && !confirm(t("shifts.overLimit", { name: user.name, hours: hoursText(after * 60), limit }))) return;
 
-  saveShift({ userId, date: dayKey, start, end });
+  const result = await api("POST", "/api/admin/shifts", { userId, date: dayKey, start, end });
+  if (!result.ok) {
+    alert(t("kiosk.offline"));
+    return;
+  }
+  await syncShifts();
   refresh();
 }
 
@@ -189,15 +194,22 @@ function editShift(shift) {
   editor.querySelector(".editor__who").textContent = `${user.name} · ${shortDate(atTime(shift.date, "12:00"))}`;
   editor.querySelector(".window__close").addEventListener("click", () => editor.close());
   editor.querySelector("[data-remove]").addEventListener("click", () => {
-    deleteShift(shift.id);
-    editor.close();
-    refresh();
+    api("DELETE", `/api/admin/shifts/${shift.id}`).then(async () => {
+      await syncShifts();
+      editor.close();
+      refresh();
+    });
   });
-  editor.querySelector("form").addEventListener("submit", (event) => {
+  editor.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const f = event.target.elements;
     if (f.end.value <= f.start.value) return;
-    saveShift({ ...shift, start: f.start.value, end: f.end.value });
+    const result = await api("PUT", `/api/admin/shifts/${shift.id}`, { userId: shift.userId, date: shift.date, start: f.start.value, end: f.end.value });
+    if (!result.ok) {
+      alert(t("kiosk.offline"));
+      return;
+    }
+    await syncShifts();
     editor.close();
     refresh();
   });
@@ -217,8 +229,10 @@ document.getElementById("week-next").addEventListener("click", () => { weekStart
 
 document.getElementById("copy").addEventListener("click", () => {
   if (!confirm(t("shifts.copyConfirm"))) return;
-  copyPreviousWeek(weekStart);
-  refresh();
+  api("POST", "/api/admin/shifts/copy-week", { weekStart: dateKey(weekStart) }).then(async () => {
+    await syncShifts();
+    refresh();
+  });
 });
 
 document.getElementById("export").addEventListener("click", () => {
@@ -289,4 +303,6 @@ document.getElementById("text").addEventListener("click", () => {
   editor.showModal();
 });
 
-if (isManager(manager)) refresh();
+if (isManager(manager)) {
+  Promise.all([syncStaff(), syncShifts()]).then(refresh);
+}

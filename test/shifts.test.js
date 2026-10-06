@@ -147,3 +147,35 @@ test("deleting a shift removes it; deleting it again gets 404", async () => {
   const again = await call("DELETE", `/api/admin/shifts/${created.data.id}`, { cookie: owner });
   assert.equal(again.status, 404);
 });
+
+test("the owner can change a shift's times, and bad times are refused", async () => {
+  const staff = await staffMember();
+  const owner = await ownerCookie();
+  const created = await call("POST", "/api/admin/shifts", { cookie: owner, body: { userId: staff.id, date: "2027-01-04", start: "09:00", end: "13:00" } });
+  const changed = await call("PUT", `/api/admin/shifts/${created.data.id}`, { cookie: owner, body: { userId: staff.id, date: "2027-01-04", start: "10:00", end: "14:00" } });
+  assert.equal(changed.status, 200);
+  assert.equal(changed.data.start, "10:00");
+
+  const bad = await call("PUT", `/api/admin/shifts/${created.data.id}`, { cookie: owner, body: { userId: staff.id, date: "2027-01-04", start: "15:00", end: "10:00" } });
+  assert.equal(bad.status, 400);
+});
+
+test("copying last week fills this week with the same shifts, seven days later", async () => {
+  const staff = await staffMember();
+  const owner = await ownerCookie();
+  // Last week (Sun 3 Jan 2027 is the start of week before 10 Jan) has a shift on Tue 5 Jan
+  await call("POST", "/api/admin/shifts", { cookie: owner, body: { userId: staff.id, date: "2027-01-05", start: "08:00", end: "12:00" } });
+
+  const copied = await call("POST", "/api/admin/shifts/copy-week", { cookie: owner, body: { weekStart: "2027-01-10" } });
+  assert.equal(copied.status, 200);
+
+  const { data } = await call("GET", "/api/admin/shifts?from=2027-01-10&to=2027-01-16", { cookie: owner });
+  const mine = data.filter((s) => s.userId === staff.id);
+  assert.ok(mine.some((s) => s.date === "2027-01-12" && s.start === "08:00" && s.end === "12:00"));
+});
+
+test("copy-week needs a proper date", async () => {
+  const owner = await ownerCookie();
+  const { status } = await call("POST", "/api/admin/shifts/copy-week", { cookie: owner, body: { weekStart: "soon" } });
+  assert.equal(status, 400);
+});

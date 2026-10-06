@@ -149,3 +149,40 @@ function mirrorCounterSale(code, cart, extra) {
   saveDb(db);
   return order;
 }
+
+// Staff (and the owner) from the server, copied into this browser's store for the pages
+// that still read it. Fields the server does not hold (availability, type, residency)
+// keep what this browser had, or get the usual defaults.
+async function syncStaff() {
+  const [me, list] = await Promise.all([api("GET", "/api/auth/me"), api("GET", "/api/staff")]);
+  if (!me.ok || !list.ok) return false;
+  const db = loadDb();
+  const before = new Map((db.users || []).map((u) => [u.id, u]));
+  const local = (user, role) => ({
+    availability: ALWAYS_FREE,
+    type: "part",
+    residency: "local",
+    birthDate: "",
+    phone: "",
+    pin: "",
+    ...(before.get(user.id) || {}),
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role,
+    status: user.status,
+  });
+  db.users = [local(me.data.user, "manager"), ...list.data.map((user) => local(user, "staff"))];
+  saveDb(db);
+  return true;
+}
+
+// Work shifts from the server, copied into this browser's store
+async function syncShifts() {
+  const result = await api("GET", "/api/admin/shifts");
+  if (!result.ok) return false;
+  const db = loadDb();
+  db.shifts = result.data;
+  saveDb(db);
+  return true;
+}
