@@ -1,9 +1,6 @@
 // Current orders from the counter and online, in the order to make them.
 // Anyone who entered their code can use it. Start → Ready → Finish; a
-// finished order leaves the board. Status changes are logged with the person's name.
-
-const queueUser = getUser(sessionStorage.getItem(SESSION_KEY));
-if (!queueUser || queueUser.status !== "approved") window.location.replace("kiosk.html");
+// finished order leaves the board. The orders and each change come from the server.
 
 const NEXT_STEP = {
   received: { status: "in_progress", label: "queue.start" },
@@ -15,8 +12,15 @@ function clock(date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
+let orders = [];
+
+async function loadQueue() {
+  const result = await api("GET", "/api/queue");
+  if (result.ok) orders = result.data;
+  showQueue();
+}
+
 function showQueue() {
-  const orders = queueOrders();
   const grid = document.getElementById("queue");
   document.getElementById("queue-count").textContent = t("queue.count", { n: orders.length });
   grid.innerHTML = orders.length ? "" : `<p class="queue__empty">${t("queue.empty")}</p>`;
@@ -24,9 +28,12 @@ function showQueue() {
   orders.forEach((order, index) => {
     const card = document.createElement("article");
     card.className = `queue-card queue-card--${order.status}`;
-    const waited = Math.round((Date.now() - new Date(order.createdAt)) / 60000);
+    const created = new Date(order.createdAt);
+    const waited = Math.round((Date.now() - created) / 60000);
+    // A pickup time is "HH:MM" today, in this browser's time zone
+    const pickupAt = order.pickupTime ? new Date(`${dateKey(new Date())}T${order.pickupTime}:00`) : null;
     // Late: waiting over 10 minutes, or past the pickup time asked for
-    const late = order.pickupAt ? Date.now() > new Date(order.pickupAt) : waited > 10;
+    const late = pickupAt ? Date.now() > pickupAt : waited > 10;
     card.classList.toggle("is-late", late && order.status !== "ready");
     card.innerHTML = `
       <div class="queue-card__top">
@@ -43,15 +50,15 @@ function showQueue() {
     card.querySelector(".badge").textContent = t(`source.${order.source}`);
     card.querySelector(".queue-card__name").textContent = order.customerName || "—";
     card.querySelector(".queue-card__when").textContent = [
-      t("queue.in", { time: clock(new Date(order.createdAt)), n: waited }),
-      order.pickupAt ? t("queue.pickup", { time: clock(new Date(order.pickupAt)) }) : order.source === "online" ? t("queue.asap") : "",
+      t("queue.in", { time: clock(created), n: waited }),
+      pickupAt ? t("queue.pickup", { time: order.pickupTime }) : t("queue.asap"),
     ].filter(Boolean).join(" · ");
     const list = card.querySelector(".queue-card__items");
-    order.lines.forEach((line) => {
+    order.items.forEach((item) => {
       const li = document.createElement("li");
       li.innerHTML = "<strong></strong><small></small>";
-      li.querySelector("strong").textContent = `${line.qty}× ${lineName(line)}`;
-      li.querySelector("small").textContent = optionsText(line.options);
+      li.querySelector("strong").textContent = `${item.quantity}× ${item.name}`;
+      li.querySelector("small").textContent = optionsText(item.options);
       list.append(li);
     });
     card.querySelector(".queue-card__status").textContent = t(`status.${order.status}`) + (late && order.status !== "ready" ? ` · ${t("queue.late")}` : "");
@@ -59,17 +66,25 @@ function showQueue() {
     const step = NEXT_STEP[order.status];
     const button = card.querySelector("button");
     button.textContent = t(step.label);
-    button.addEventListener("click", () => {
-      setOrderStatus(order.id, step.status, queueUser.id);
-      showQueue();
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      const result = await api("POST", `/api/queue/${order.code}/status`, { status: step.status });
+      if (!result.ok) alert(t("kiosk.offline"));
+      await loadQueue();
     });
     grid.append(card);
   });
 }
 
-if (queueUser && queueUser.status === "approved") {
-  showQueue();
-  // New online orders show up by themselves (another tab or device saving data)
-  setInterval(showQueue, 15000);
-  window.addEventListener("storage", showQueue);
+async function startQueue() {
+  const me = await api("GET", "/api/auth/me");
+  if (!me.ok) {
+    window.location.replace("kiosk.html");
+    return;
+  }
+  await loadQueue();
+  // New orders show up by themselves
+  setInterval(loadQueue, 15000);
 }
+
+startQueue();

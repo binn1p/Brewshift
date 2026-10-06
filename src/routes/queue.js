@@ -21,8 +21,9 @@ function queueRouter() {
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
         .map((o) => ({
           code: o.code,
+          source: "online",
           customerName: o.customerName,
-          items: o.items.map((i) => ({ name: i.name, quantity: i.quantity })),
+          items: o.items.map((i) => ({ name: i.name, quantity: i.quantity, options: i.options })),
           status: o.status,
           pickupTime: o.pickupTime,
           createdAt: o.createdAt,
