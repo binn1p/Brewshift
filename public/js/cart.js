@@ -354,7 +354,7 @@ function setupPosCheckout(body, itemsSubtotal) {
   const totalBox = body.querySelector(".pos-total");
   const cashBox = body.querySelector(".cash");
   const pointValue = getSettings().loyalty.pointValue;
-  let member = null;
+  let member = null; // { id, name, points, phone } as the server knows them
   let usePoints = false;
   let cents = 0; // cash received, typed like a register: 1, 2, 5 → $1.25
 
@@ -393,24 +393,41 @@ function setupPosCheckout(body, itemsSubtotal) {
     }
   }
 
-  // Member lookup by phone (they must have signed up on the website first)
-  memberInput.addEventListener("input", () => {
-    member = findCustomerByPhone(memberInput.value);
+  function showMember() {
+    const available = Math.min(member.points, Math.floor(itemsSubtotal / pointValue));
+    memberBox.innerHTML = `<p class="member-found__name"></p>
+      ${member.points > 0 ? `<label class="field--check"><input type="checkbox" data-use> ${t("pos.usePoints", { n: available, amount: money(available * pointValue) })}</label>` : ""}`;
+    memberBox.querySelector(".member-found__name").textContent = t("pos.memberFound", { name: member.name, points: member.points, n: drinkCount(readCart()) * getSettings().loyalty.pointsPerDrink });
+    memberBox.querySelector("[data-use]")?.addEventListener("change", (event) => {
+      usePoints = event.target.checked;
+      showTotals();
+    });
+    if (!checkout.elements.pickup.value) checkout.elements.pickup.value = member.name.split(" ")[0];
+  }
+
+  // Member lookup on the server by phone, once 10 digits are typed
+  let lookupTimer = null;
+  async function lookupMember() {
+    const digits = memberInput.value.replace(/\D/g, "").slice(-10);
+    member = null;
     usePoints = false;
     memberBox.innerHTML = "";
-    if (member) {
-      memberBox.innerHTML = `<p class="member-found__name"></p>
-        ${member.points > 0 ? `<label class="field--check"><input type="checkbox" data-use> ${t("pos.usePoints", { n: Math.min(member.points, Math.floor(itemsSubtotal / pointValue)), amount: money(Math.min(member.points, Math.floor(itemsSubtotal / pointValue)) * pointValue) })}</label>` : ""}`;
-      memberBox.querySelector(".member-found__name").textContent = t("pos.memberFound", { name: member.name, points: member.points, n: drinkCount(readCart()) * getSettings().loyalty.pointsPerDrink });
-      memberBox.querySelector("[data-use]")?.addEventListener("change", (event) => {
-        usePoints = event.target.checked;
-        showTotals();
-      });
-      if (!checkout.elements.pickup.value) checkout.elements.pickup.value = member.name.split(" ")[0];
-    } else if (memberInput.value.replace(/\D/g, "").length >= 10) {
-      memberBox.innerHTML = `<p class="admin__hint">${t("pos.noMember")}</p>`;
+    if (digits.length === 10) {
+      const result = await api("GET", `/api/customers/lookup?phone=${digits}`);
+      if (result.ok) {
+        member = { ...result.data, phone: digits };
+        showMember();
+      } else if (result.status === 404) {
+        memberBox.innerHTML = `<p class="admin__hint">${t("pos.noMember")}</p>`;
+      } else {
+        memberBox.innerHTML = `<p class="admin__hint">${t("kiosk.offline")}</p>`;
+      }
     }
     showTotals();
+  }
+  memberInput.addEventListener("input", () => {
+    clearTimeout(lookupTimer);
+    lookupTimer = setTimeout(lookupMember, 300);
   });
 
   checkout.querySelectorAll("input[name=payment]").forEach((radio) => radio.addEventListener("change", showCash));
@@ -429,26 +446,46 @@ function setupPosCheckout(body, itemsSubtotal) {
   checkout.querySelector("[data-bill]").addEventListener("click", () => {
     printBill(readCart(), checkout.elements.pickup.value.trim(), discount());
   });
-  checkout.addEventListener("submit", (event) => {
+
+  checkout.addEventListener("submit", async (event) => {
     event.preventDefault();
     const pickup = checkout.elements.pickup;
     if (!pickup.value.trim()) pickup.value = "";
     showCash();
     if (!checkout.reportValidity()) return;
-    // Work out every amount first: spending the points changes the member's balance
-    const used = pointsToUse();
-    const due = toPay();
+
+    // The server takes the points, works out the total and the change, and saves the sale
     const isCash = checkout.elements.payment.value === "cash";
-    if (used) spendPoints(member.id, used);
-    const order = addOrder(readCart(), pickup.value.trim(), member ? member.phone : "", {
-      source: "counter",
+    const bag = readCart();
+    const send = checkout.querySelector("[type=submit]");
+    send.disabled = true;
+    const result = await api("POST", "/api/orders/counter", {
+      customerName: pickup.value.trim(),
+      payment: checkout.elements.payment.value,
+      cashReceived: isCash ? cents / 100 : null,
+      customerPhone: member ? member.phone : null,
+      usePoints: Boolean(member && usePoints),
+      items: bag.map((line) => ({ id: line.id, quantity: line.qty, options: line.options })),
+    });
+    send.disabled = false;
+    if (!result.ok) {
+      const note = document.createElement("p");
+      note.className = "admin__error";
+      note.textContent = result.status === 0 ? t("kiosk.offline") : t("cart.checkError");
+      totalBox.append(note);
+      return;
+    }
+
+    const order = mirrorCounterSale(result.data.code, bag, {
+      customerName: pickup.value.trim(),
+      phone: member ? member.phone : "",
+      customerId: member ? member.id : null,
       takenBy: sessionStorage.getItem(SESSION_KEY),
       payment: checkout.elements.payment.value,
-      customerId: member?.id || null,
-      pointsUsed: used,
-      discount: used * pointValue,
+      pointsUsed: result.data.pointsUsed || 0,
+      discount: (result.data.pointsUsed || 0) * pointValue,
       cashReceived: isCash ? cents / 100 : null,
-      change: isCash ? Math.round((cents / 100 - due) * 100) / 100 : null,
+      change: result.data.change,
     });
     localStorage.removeItem(CART_KEY);
     renderCart();

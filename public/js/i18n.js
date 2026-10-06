@@ -172,6 +172,7 @@ const STRINGS = {
   "kiosk.progress": { en: "{n} of 6 digits entered", fr: "{n} chiffres sur 6" },
   "kiosk.wrong": { en: "That code doesn't match. Please try again.", fr: "Ce code ne correspond pas. Veuillez réessayer." },
   "set.saveFailed": { en: "Could not save. Please check the values and try again.", fr: "Enregistrement impossible. Vérifiez les valeurs et réessayez." },
+  "queue.moved": { en: "That order has already moved on. The list has been refreshed.", fr: "Cette commande a déjà changé. La liste a été mise à jour." },
   "kiosk.offline": { en: "Can't reach the shop server right now. Please try again in a moment.", fr: "Impossible de joindre le serveur de la boutique. Réessayez dans un instant." },
   "kiosk.pending": { en: "Hi {name}, your account is waiting for the owner's approval.", fr: "Bonjour {name}, votre compte attend l'approbation de la direction." },
   "kiosk.welcomeIn": { en: "Hi {name}, welcome in!", fr: "Bonjour {name}, bienvenue !" },

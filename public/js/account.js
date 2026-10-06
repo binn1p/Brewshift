@@ -1,32 +1,36 @@
 // A member's page: points, orders still being made (with live status),
-// order history, details and the promotions choice.
-
-const me = signedInCustomer();
-if (!me) window.location.replace("login.html");
+// order history, details and the promotions choice. Everything comes from the server.
 
 const STEPS = ["received", "in_progress", "ready"];
 
-function myOrders() {
-  return getOrders().filter((order) => order.customerId === me.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
+let me = null;
+let orders = [];
 
 function itemsText(order) {
-  return order.lines.map((line) => {
-    const drink = findDrink(line.id);
-    return `${line.qty}× ${drink ? drinkName(drink) : line.id}`;
-  }).join(", ");
+  return order.items.map((item) => `${item.quantity}× ${item.name}`).join(", ");
+}
+
+async function loadAccount() {
+  const [who, mine] = await Promise.all([api("GET", "/api/customers/me"), api("GET", "/api/customers/orders")]);
+  if (!who.ok) {
+    signOutCustomer();
+    window.location.replace("login.html");
+    return;
+  }
+  me = mirrorCustomer(who.data.customer);
+  if (mine.ok) orders = mine.data;
+  showAll();
 }
 
 function showPoints() {
-  const fresh = findCustomer(me.id);
-  document.getElementById("points").textContent = fresh.points;
-  document.getElementById("points-worth").textContent = t("account.worth", { amount: money(fresh.points * getSettings().loyalty.pointValue), n: getSettings().loyalty.pointsPerDrink });
+  document.getElementById("points").textContent = me.points;
+  document.getElementById("points-worth").textContent = t("account.worth", { amount: money(me.points * getSettings().loyalty.pointValue), n: getSettings().loyalty.pointsPerDrink });
 }
 
 // Orders still open, with a step bar: received → being made → ready
 function showCurrent() {
   const box = document.getElementById("current");
-  const open = myOrders().filter((order) => STEPS.includes(order.status));
+  const open = orders.filter((order) => STEPS.includes(order.status));
   box.innerHTML = open.length ? "" : `<p class="admin__hint">${t("account.noCurrent")}</p>`;
   open.forEach((order) => {
     const card = document.createElement("div");
@@ -46,32 +50,46 @@ function showCurrent() {
 
 function showHistory() {
   const table = document.getElementById("history");
-  const past = myOrders().filter((order) => !STEPS.includes(order.status));
+  const past = orders.filter((order) => !STEPS.includes(order.status));
   table.innerHTML = `<thead><tr><th>${t("account.col.date")}</th><th>${t("account.col.code")}</th><th>${t("account.col.items")}</th><th>${t("account.col.total")}</th><th>${t("account.pointsCol")}</th></tr></thead><tbody></tbody>`;
   const body = table.querySelector("tbody");
   if (!past.length) body.innerHTML = `<tr><td colspan="5">${t("account.noHistory")}</td></tr>`;
   past.forEach((order) => {
     const row = body.insertRow();
     const points = [order.pointsEarned ? `+${order.pointsEarned}` : "", order.pointsUsed ? `−${order.pointsUsed}` : ""].filter(Boolean).join(" ");
-    [formatLongDate(new Date(order.createdAt)), order.code, itemsText(order), money(orderTotal(order)), points || "—"]
+    [formatLongDate(new Date(order.createdAt)), order.code, itemsText(order), money(order.totalCents / 100), points || "—"]
       .forEach((value) => { row.insertCell().textContent = value; });
   });
 }
 
-if (me) {
+function showAll() {
   document.getElementById("account-hello").textContent = t("account.hello", { name: me.name.split(" ")[0] });
   document.getElementById("profile").textContent = `${me.name} · ${me.email} · (${me.phone.slice(0, 3)}) ${me.phone.slice(3, 6)}-${me.phone.slice(6)}`;
-  const promos = document.getElementById("promos");
-  promos.checked = me.promos;
-  promos.addEventListener("change", () => saveCustomer({ ...findCustomer(me.id), promos: promos.checked }));
-  document.getElementById("logout").addEventListener("click", () => {
-    signOutCustomer();
-    window.location.href = "index.html";
-  });
+  document.getElementById("promos").checked = me.promos;
   showPoints();
   showCurrent();
   showHistory();
-  // The status updates by itself while the page is open
-  setInterval(() => { showPoints(); showCurrent(); }, 10000);
-  window.addEventListener("storage", () => { showPoints(); showCurrent(); showHistory(); });
 }
+
+document.getElementById("promos").addEventListener("change", async (event) => {
+  const result = await api("PUT", "/api/customers/promos", { promos: event.target.checked });
+  if (result.ok) me = mirrorCustomer(result.data.customer);
+});
+
+document.getElementById("logout").addEventListener("click", async () => {
+  await api("POST", "/api/customers/logout");
+  signOutCustomer();
+  window.location.href = "index.html";
+});
+
+loadAccount();
+// The status and points update by themselves while the page is open
+setInterval(async () => {
+  const mine = await api("GET", "/api/customers/orders");
+  const who = await api("GET", "/api/customers/me");
+  if (mine.ok) orders = mine.data;
+  if (who.ok) me = mirrorCustomer(who.data.customer);
+  showPoints();
+  showCurrent();
+  showHistory();
+}, 10000);

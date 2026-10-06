@@ -13,10 +13,22 @@ function clock(date) {
 }
 
 let orders = [];
+let shown = null; // what is on the screen now, to skip redrawing when nothing changed
 
 async function loadQueue() {
   const result = await api("GET", "/api/queue");
-  if (result.ok) orders = result.data;
+  if (result.status === 401) {
+    window.location.replace("kiosk.html");
+    return;
+  }
+  if (result.ok) {
+    // Redrawing the buttons while someone presses one makes the press miss, so only
+    // redraw when the list has really changed
+    const fresh = JSON.stringify(result.data);
+    if (fresh === shown) return;
+    shown = fresh;
+    orders = result.data;
+  }
   showQueue();
 }
 
@@ -69,7 +81,15 @@ function showQueue() {
     button.addEventListener("click", async () => {
       button.disabled = true;
       const result = await api("POST", `/api/queue/${order.code}/status`, { status: step.status });
-      if (!result.ok) alert(t("kiosk.offline"));
+      if (result.status === 401) {
+        // The session ended (for example the server restarted): enter the code again
+        window.location.replace("kiosk.html");
+        return;
+      }
+      // 409: someone already moved this order on, so the list is refreshed
+      if (result.status === 409) alert(t("queue.moved"));
+      else if (!result.ok) alert(t("kiosk.offline"));
+      shown = null; // redraw now, so the button works again
       await loadQueue();
     });
     grid.append(card);

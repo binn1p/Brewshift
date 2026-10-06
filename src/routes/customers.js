@@ -33,11 +33,8 @@ function customersRouter() {
       });
       if (result.error) return res.status(result.error).json({ error: result.message });
 
-      req.session.regenerate((error) => {
-        if (error) return next(error);
-        req.session.customerId = hashed.id;
-        res.status(201).json({ customer: publicCustomer(hashed) });
-      });
+      req.session.customerId = hashed.id;
+      res.status(201).json({ customer: publicCustomer(hashed) });
     } catch (error) {
       next(error);
     }
@@ -51,11 +48,8 @@ function customersRouter() {
       const matches = customer && password && (await bcrypt.compare(password, customer.passwordHash));
       if (!matches) return res.status(401).json({ error: "Wrong email or password." });
 
-      req.session.regenerate((error) => {
-        if (error) return next(error);
-        req.session.customerId = customer.id;
-        res.json({ customer: publicCustomer(customer) });
-      });
+      req.session.customerId = customer.id;
+      res.json({ customer: publicCustomer(customer) });
     } catch (error) {
       next(error);
     }

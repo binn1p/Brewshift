@@ -205,3 +205,53 @@ test("a member number that does not exist is refused at the counter", async () =
   assert.equal(status, 404);
   assert.ok(data.fields.customerPhone);
 });
+
+test("the owner changing an order's status is seen by the member's tracking", async () => {
+  const member = await newMember();
+  const placed = await call("POST", "/api/orders", {
+    cookie: member.cookie,
+    body: { name: "Tracker", phone: member.phone, items: [{ id: "hot-black-coffee", quantity: 1 }] },
+  });
+  const owner = (await call("POST", "/api/auth/login", { body: { email: process.env.OWNER_EMAIL, password: process.env.OWNER_PASSWORD } })).cookie;
+
+  const changed = await call("POST", `/api/admin/orders/${placed.data.code}/status`, { cookie: owner, body: { status: "in_progress" } });
+  assert.equal(changed.status, 200);
+
+  const mine = await call("GET", "/api/customers/orders", { cookie: member.cookie });
+  assert.equal(mine.data.find((o) => o.code === placed.data.code).status, "in_progress");
+});
+
+test("the owner's status change accepts only known statuses", async () => {
+  const owner = (await call("POST", "/api/auth/login", { body: { email: process.env.OWNER_EMAIL, password: process.env.OWNER_PASSWORD } })).cookie;
+  const member = await newMember();
+  const placed = await call("POST", "/api/orders", {
+    cookie: member.cookie,
+    body: { name: "Bad Status", phone: member.phone, items: [{ id: "hot-black-coffee", quantity: 1 }] },
+  });
+  const { status } = await call("POST", `/api/admin/orders/${placed.data.code}/status`, { cookie: owner, body: { status: "flying" } });
+  assert.equal(status, 400);
+});
+
+test("a staff sign-in, sign-out or kiosk visit does not sign the member out, and the reverse", async () => {
+  const member = await newMember();
+  // A staff member with a known PIN, approved by the owner
+  const email = `split${letters(counter + 500)}@accounts.ca`;
+  const pin = "654321";
+  await call("POST", "/api/auth/register", { body: { name: "Split Staff", email, password: "a-good-password", pin } });
+  const owner = (await call("POST", "/api/auth/login", { body: { email: process.env.OWNER_EMAIL, password: process.env.OWNER_PASSWORD } })).cookie;
+  const pending = (await call("GET", "/api/staff/pending", { cookie: owner })).data.find((u) => u.email === email);
+  await call("POST", `/api/staff/${pending.id}/approve`, { cookie: owner });
+
+  // Staff signs in on the kiosk in the same browser (same cookie)
+  const kiosk = await call("POST", "/api/kiosk/login", { body: { pin }, cookie: member.cookie });
+  assert.equal(kiosk.status, 200);
+  const staffNow = await call("GET", "/api/auth/me", { cookie: member.cookie });
+  assert.equal(staffNow.status, 200);
+
+  // Staff leaves (kiosk visit logs them out): the member is still signed in
+  await call("POST", "/api/auth/logout", { cookie: member.cookie });
+  const stillMember = await call("GET", "/api/customers/me", { cookie: member.cookie });
+  assert.equal(stillMember.status, 200);
+  const staffGone = await call("GET", "/api/auth/me", { cookie: member.cookie });
+  assert.equal(staffGone.status, 401);
+});

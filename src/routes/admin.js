@@ -9,6 +9,7 @@ const { toCsv } = require("../lib/csv");
 const { checkDrink, slugify } = require("../lib/menu");
 const { saveImage } = require("../lib/uploads");
 const { checkSettings } = require("../lib/settings");
+const { loyaltyRules } = require("../lib/customers");
 const { requireLogin, requireRole } = require("../middleware/auth");
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -178,6 +179,40 @@ function adminRouter(shop) {
       const home = { seasonalDrink, promoDrink };
       await exclusive(() => writeJson("home", home));
       res.json(home);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Change an order's status from the order log (owner). Any status the log offers.
+  const ORDER_STATUSES = ["received", "in_progress", "ready", "picked_up", "cancelled", "no_show", "surplus", "deleted"];
+  router.post("/orders/:code/status", async (req, res, next) => {
+    try {
+      const status = req.body?.status;
+      if (!ORDER_STATUSES.includes(status)) return res.status(400).json({ error: "That is not an order status." });
+      const result = await exclusive(async () => {
+        const orders = await readJson("orders", []);
+        const order = orders.find((o) => o.code === req.params.code.toUpperCase());
+        if (!order) return { error: 404, message: "No order with that code." };
+        order.history = order.history || [];
+        order.history.push({ at: new Date().toISOString(), by: req.user.id, action: "status", before: { status: order.status }, after: { status } });
+        order.status = status;
+        // A member earns points when an online order is picked up (same rule as the queue)
+        if (status === "picked_up" && order.customerId && !order.pointsEarned) {
+          const customers = await readJson("customers", []);
+          const member = customers.find((c) => c.id === order.customerId);
+          if (member) {
+            const rules = loyaltyRules(await readJson("settings", {}));
+            order.pointsEarned = order.items.reduce((sum, i) => sum + i.quantity, 0) * rules.pointsPerDrink;
+            member.points += order.pointsEarned;
+            await writeJson("customers", customers);
+          }
+        }
+        await writeJson("orders", orders);
+        return { order };
+      });
+      if (result.error) return res.status(result.error).json({ error: result.message });
+      res.json({ code: result.order.code, status: result.order.status });
     } catch (error) {
       next(error);
     }

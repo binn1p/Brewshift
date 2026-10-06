@@ -37,11 +37,8 @@ function kioskRouter() {
       }
 
       const punches = (await readJson("punches", [])).filter((p) => p.userId === user.id);
-      req.session.regenerate((error) => {
-        if (error) return next(error);
-        req.session.userId = user.id;
-        res.json({ user: publicUser(user), state: currentState(punches) });
-      });
+      req.session.userId = user.id;
+      res.json({ user: publicUser(user), state: currentState(punches) });
     } catch (error) {
       next(error);
     }

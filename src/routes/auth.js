@@ -82,21 +82,18 @@ function authRouter() {
         return res.status(403).json({ error: "Your account is waiting for approval." });
       }
 
-      req.session.regenerate((error) => {
-        if (error) return next(error);
-        req.session.userId = user.id;
-        res.json({ user: publicUser(user) });
-      });
+      // Only the staff part of the session is set; a member signed in on this browser stays signed in
+      req.session.userId = user.id;
+      res.json({ user: publicUser(user) });
     } catch (error) {
       next(error);
     }
   });
 
   router.post("/logout", (req, res, next) => {
-    req.session.destroy((error) => {
-      if (error) return next(error);
-      res.json({ ok: true });
-    });
+    // Only the staff part of the session is cleared; a member signed in here stays signed in
+    delete req.session.userId;
+    res.json({ ok: true });
   });
 
   // Who is signed in (used by pages to show the right menu)

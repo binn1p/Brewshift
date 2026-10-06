@@ -88,4 +88,64 @@ function withoutHome(settings) {
 // so the page is drawn with them. The next load finds nothing new and does not reload.
 if (typeof loadDb === "function") {
   syncSettings().then((changed) => { if (changed) window.location.reload(); });
+  // A member remembered in this browser must also be signed in on the server (the server
+  // forgets its sessions when it restarts). If not, forget them here, so the menu stops
+  // showing the account link.
+  if (localStorage.getItem(CUSTOMER_KEY)) {
+    api("GET", "/api/customers/me").then((result) => {
+      if (result.status === 401) {
+        signOutCustomer();
+        window.location.reload();
+      }
+    });
+  }
+}
+
+// The member signed in on the server, copied into this browser so the bag and the
+// counter can show them. The password is never kept here.
+function mirrorCustomer(customer) {
+  const db = loadDb();
+  db.customers = db.customers || [];
+  const index = db.customers.findIndex((c) => c.id === customer.id);
+  const merged = {
+    ...(index >= 0 ? db.customers[index] : {}),
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    promos: customer.promos,
+    points: customer.points,
+  };
+  if (index >= 0) db.customers[index] = merged;
+  else db.customers.push(merged);
+  saveDb(db);
+  return merged;
+}
+
+// A sale made at the counter, copied into this browser's order list for the receipt.
+// The server has already taken the points, so this copy does not award them again.
+function mirrorCounterSale(code, cart, extra) {
+  const db = loadDb();
+  const order = {
+    id: newId("o"),
+    code,
+    customerName: extra.customerName,
+    phone: extra.phone || "",
+    source: "counter",
+    takenBy: extra.takenBy,
+    payment: extra.payment,
+    lines: cart.map((line) => ({ id: line.id, qty: line.qty, unitPrice: line.unitPrice, promo: line.promo || null, options: line.options })),
+    status: "received",
+    createdAt: new Date().toISOString(),
+    history: [],
+    customerId: extra.customerId || null,
+    pickupAt: null,
+    pointsUsed: extra.pointsUsed || 0,
+    discount: extra.discount || 0,
+    cashReceived: extra.cashReceived ?? null,
+    change: extra.change ?? null,
+  };
+  db.orders.push(order);
+  saveDb(db);
+  return order;
 }

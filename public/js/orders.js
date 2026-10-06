@@ -78,8 +78,11 @@ function showTable() {
       option.selected = status === order.status;
       select.append(option);
     });
-    select.addEventListener("change", () => {
+    select.addEventListener("change", async () => {
       setOrderStatus(order.id, select.value, manager.id);
+      // Sent to the server too, so the customer's tracking page and the queue see it
+      const result = await api("POST", `/api/admin/orders/${order.code}/status`, { status: select.value });
+      if (!result.ok) alert(t("kiosk.offline"));
       refresh();
     });
     statusCell.append(select);
