@@ -1,9 +1,6 @@
 // One staff member's page: clock in/out, this week's hours, next shifts, export.
 // Only the person who entered their code on the kiosk is shown.
-
-const userId = sessionStorage.getItem(SESSION_KEY);
-const me = userId && getUser(userId);
-if (!me || me.status !== "approved") window.location.replace("kiosk.html");
+// Clock times, hours and shifts all come from the server.
 
 // Day and month words come from CALENDAR in i18n.js (English or French)
 const DAY_LETTERS = CALENDAR.letters;
@@ -19,21 +16,62 @@ function shiftLength(shift) {
   return (atTime(shift.date, shift.end) - atTime(shift.date, shift.start)) / 60000;
 }
 
+let me = null;
+let punches = []; // my punches from the server, oldest first
+let shifts = []; // my shifts from the server
+let working = false;
+
+// Pairs of clock in / clock out. A shift still running ends "now".
+function workSessions() {
+  const sessions = [];
+  let open = null;
+  for (const punch of punches) {
+    if (punch.type === "in") {
+      open = { start: new Date(punch.at), end: null, running: true };
+    } else if (open) {
+      open.end = new Date(punch.at);
+      open.running = false;
+      sessions.push(open);
+      open = null;
+    }
+  }
+  if (open) {
+    open.end = new Date();
+    sessions.push(open);
+  }
+  return sessions;
+}
+
+// Minutes worked on one day (by the day the shift started)
+function minutesWorkedOn(dayKey) {
+  return workSessions()
+    .filter((s) => dateKey(s.start) === dayKey)
+    .reduce((sum, s) => sum + (s.end - s.start) / 60000, 0);
+}
+
+async function loadMyData() {
+  const [mine, myShifts] = await Promise.all([api("GET", "/api/punches/me"), api("GET", "/api/shifts/me")]);
+  if (mine.ok) {
+    punches = mine.data.punches;
+    working = mine.data.state === "in";
+  }
+  if (myShifts.ok) shifts = myShifts.data;
+}
+
 // ---------- Left panel: name and the clock in/out button ----------
 
 const punchButton = document.getElementById("punch");
 const toast = document.getElementById("staff-toast");
 
 function showMe() {
-  const working = isClockedIn(me.id);
-  const sessions = getWorkSessions(me.id);
+  const sessions = workSessions();
   const current = sessions[sessions.length - 1];
-  document.getElementById("staff-status").textContent = working
+  document.getElementById("staff-status").textContent = working && current
     ? t("staff.on", { time: clockTime(current.start) })
     : t("staff.off");
   document.getElementById("staff-status").classList.toggle("is-working", working);
 
-  const todayShift = getShifts(me.id).find((shift) => shift.date === dateKey(new Date()));
+  const todayShift = shifts.find((shift) => shift.date === dateKey(new Date()));
   document.getElementById("staff-today").textContent = todayShift
     ? t("staff.today", { start: todayShift.start, end: todayShift.end })
     : t("staff.noToday");
@@ -42,18 +80,26 @@ function showMe() {
   punchButton.classList.toggle("is-out", working);
 }
 
-punchButton.addEventListener("click", () => {
-  const punch = togglePunch(me.id);
-  const at = clockTime(new Date(punch.at));
-  if (punch.type === "in") {
+punchButton.addEventListener("click", async () => {
+  punchButton.disabled = true;
+  const result = await api("POST", "/api/punches/toggle");
+  punchButton.disabled = false;
+  if (!result.ok) {
+    toast.textContent = t("kiosk.offline");
+    return;
+  }
+
+  await loadMyData();
+  const at = clockTime(new Date(result.data.punch.at));
+  if (result.data.punch.type === "in") {
     toast.textContent = t("staff.toastIn", { time: at });
   } else {
-    const sessions = getWorkSessions(me.id);
-    const last = sessions[sessions.length - 1];
+    const last = workSessions().at(-1);
     toast.textContent = t("staff.toastOut", { time: at, hours: hoursText((last.end - last.start) / 60000) });
   }
   showMe();
   showWeek();
+  showNextShifts();
 });
 
 // ---------- Week view: hours worked each day, plus the scheduled shift ----------
@@ -62,7 +108,6 @@ let weekStart = startOfWeek(new Date());
 
 function showWeek() {
   const todayKey = dateKey(new Date());
-  const shifts = getShifts(me.id);
   const list = document.getElementById("week");
   list.innerHTML = "";
   let total = 0;
@@ -70,7 +115,7 @@ function showWeek() {
   for (let i = 0; i < 7; i++) {
     const day = addDays(weekStart, i);
     const key = dateKey(day);
-    const minutes = minutesWorkedOn(me.id, key);
+    const minutes = minutesWorkedOn(key);
     const shift = shifts.find((s) => s.date === key);
     total += minutes;
 
@@ -98,7 +143,7 @@ document.getElementById("week-next").addEventListener("click", () => { weekStart
 
 function showNextShifts() {
   const now = new Date();
-  const upcoming = getShifts(me.id).filter((shift) => atTime(shift.date, shift.end) > now).slice(0, 3);
+  const upcoming = shifts.filter((shift) => atTime(shift.date, shift.end) > now).slice(0, 3);
   const list = document.getElementById("next-shifts");
   list.innerHTML = upcoming.length ? "" : `<li>${t("staff.noUpcoming")}</li>`;
   upcoming.forEach((shift) => {
@@ -111,7 +156,7 @@ function showNextShifts() {
 // ---------- Export: CSV download and print ----------
 
 function logRows() {
-  return getWorkSessions(me.id).map((session) => ({
+  return workSessions().map((session) => ({
     date: dateKey(session.start),
     in: clockTime(session.start),
     out: session.running ? t("staff.stillIn") : clockTime(session.end),
@@ -157,7 +202,8 @@ document.getElementById("print").addEventListener("click", () => {
 
 // ---------- Done: back to the kiosk for the next person ----------
 
-function done() {
+async function done() {
+  await api("POST", "/api/auth/logout");
   sessionStorage.removeItem(SESSION_KEY);
   window.location.href = "kiosk.html";
 }
@@ -171,10 +217,19 @@ let idleTimer = setTimeout(done, 120000);
   idleTimer = setTimeout(done, 120000);
 }));
 
-if (me && me.status === "approved") {
+async function start() {
+  const who = await api("GET", "/api/auth/me");
+  if (!who.ok) {
+    window.location.replace("kiosk.html");
+    return;
+  }
+  me = mirrorUser(who.data.user);
   document.getElementById("staff-name").textContent = me.name;
+  await loadMyData();
   showMe();
   showWeek();
   showNextShifts();
-  setInterval(() => { showMe(); showWeek(); }, 60000);
+  setInterval(async () => { await loadMyData(); showMe(); showWeek(); showNextShifts(); }, 60000);
 }
+
+start();

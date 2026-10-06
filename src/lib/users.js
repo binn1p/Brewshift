@@ -30,14 +30,14 @@ async function pinIsTaken(users, pin) {
 }
 
 // Creates the owner from environment variables at startup (FR-25), if not there yet.
-async function ensureOwner({ email, password, pin }) {
+async function ensureOwner({ email, password, pin, name }) {
   if (!email || !password || !pin) return;
   await exclusive(async () => {
     const users = await readUsers();
     if (findByEmail(users, email.toLowerCase())) return;
     users.push({
       id: `u_${crypto.randomBytes(4).toString("hex")}`,
-      name: "Owner",
+      name: name || "Owner",
       email: email.toLowerCase(),
       passwordHash: await bcrypt.hash(password, SALT_ROUNDS),
       pinHash: await bcrypt.hash(pin, SALT_ROUNDS),

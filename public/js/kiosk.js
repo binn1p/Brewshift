@@ -87,16 +87,37 @@ document.addEventListener("keydown", (event) => {
 
 showCode();
 
+// The shared iPad starts with nobody signed in: end any session left from before
+api("POST", "/api/auth/logout");
+
 function shake() {
   pinForm.classList.remove("is-wrong");
   void pinForm.offsetWidth; // restart the shake animation
   pinForm.classList.add("is-wrong");
 }
 
-function checkPin(pin) {
-  const user = findUserByPin(pin);
+// The PIN is checked on the server. A correct PIN starts a session there.
+async function checkPin(pin) {
+  const { ok, status, data } = await api("POST", "/api/kiosk/login", { pin });
 
-  if (!user) {
+  if (status === 0) {
+    shake();
+    clearBoxes();
+    message.textContent = t("kiosk.offline");
+    message.className = "kiosk__message is-error";
+    return;
+  }
+
+  // Waiting for approval: the server gives the name so the message can say hi
+  if (status === 403 && data?.name) {
+    shake();
+    clearBoxes();
+    message.textContent = t("kiosk.pending", { name: data.name.split(" ")[0] });
+    message.className = "kiosk__message is-error";
+    return;
+  }
+
+  if (!ok) {
     shake();
     clearBoxes();
     message.textContent = t("kiosk.wrong");
@@ -104,20 +125,12 @@ function checkPin(pin) {
     return;
   }
 
-  if (user.status !== "approved") {
-    shake();
-    clearBoxes();
-    message.textContent = t("kiosk.pending", { name: user.name.split(" ")[0] });
-    message.className = "kiosk__message is-error";
-    return;
-  }
-
-  welcome(user);
+  welcome(mirrorUser(data.user), data.state);
 }
 
-function welcome(user) {
+function welcome(user, state) {
   const first = user.name.split(" ")[0];
-  const working = isClockedIn(user.id);
+  const working = state === "in";
   document.getElementById("welcome-title").textContent = t(working ? "kiosk.welcomeBack" : "kiosk.welcomeIn", { name: first });
   document.getElementById("welcome-text").textContent = t(working ? "kiosk.welcomeBackText" : "kiosk.welcomeInText");
   busy = true;

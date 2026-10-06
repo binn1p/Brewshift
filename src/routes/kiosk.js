@@ -30,7 +30,7 @@ function kioskRouter() {
       const user = await findByPin(pin);
       if (!user) return res.status(401).json({ error: "This PIN is not recognised." });
       if (user.status === "pending") {
-        return res.status(403).json({ error: "Your account is waiting for approval." });
+        return res.status(403).json({ error: "Your account is waiting for approval.", name: user.name });
       }
       if (user.status !== "approved") {
         return res.status(403).json({ error: "This account is not active." });

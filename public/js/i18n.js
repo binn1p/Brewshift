@@ -171,6 +171,7 @@ const STRINGS = {
   "kiosk.back": { en: "Delete last digit", fr: "Effacer le dernier chiffre" },
   "kiosk.progress": { en: "{n} of 6 digits entered", fr: "{n} chiffres sur 6" },
   "kiosk.wrong": { en: "That code doesn't match. Please try again.", fr: "Ce code ne correspond pas. Veuillez réessayer." },
+  "kiosk.offline": { en: "Can't reach the shop server right now. Please try again in a moment.", fr: "Impossible de joindre le serveur de la boutique. Réessayez dans un instant." },
   "kiosk.pending": { en: "Hi {name}, your account is waiting for the owner's approval.", fr: "Bonjour {name}, votre compte attend l'approbation de la direction." },
   "kiosk.welcomeIn": { en: "Hi {name}, welcome in!", fr: "Bonjour {name}, bienvenue !" },
   "kiosk.welcomeInText": { en: "Have a great shift. Make every cup a good one.", fr: "Bon quart de travail ! Que chaque tasse soit réussie." },

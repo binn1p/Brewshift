@@ -16,6 +16,7 @@ ensureOwner({
   email: process.env.OWNER_EMAIL,
   password: process.env.OWNER_PASSWORD,
   pin: process.env.OWNER_PIN,
+  name: process.env.OWNER_NAME,
 })
   .then(() => {
     createApp(shop).listen(PORT, () => {
