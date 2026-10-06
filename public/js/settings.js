@@ -172,7 +172,7 @@ form.addEventListener("submit", async (event) => {
   });
   saveDb(db);
   const pinChoice = form.querySelector("input[name=pin]:checked")?.value || "";
-  saveSettings({
+  const next = {
     ...s,
     shop: { name: f.name.value.trim(), address1: f.address1.value.trim(), address2: f.address2.value.trim(), phone: f.phone.value.trim(), email: f.email.value.trim() },
     hours: { weekday: [f.wdOpen.value, f.wdClose.value], weekend: [f.weOpen.value, f.weClose.value] },
@@ -186,10 +186,21 @@ form.addEventListener("submit", async (event) => {
     decor: f.decor.value,
     questions,
     pinnedQuestion: questions.some((q) => q.id === pinChoice) ? pinChoice : "",
-  });
-  // The home page choices are also saved on the server, so the home page shows them on every device
+  };
+  saveSettings(next);
+
+  // Saved on the server too, so every device shows the same settings
+  const shopPart = { ...next };
+  delete shopPart.home;
+  const shopResult = await api("PUT", "/api/admin/settings", shopPart);
   const homeResult = await api("PUT", "/api/admin/settings/home", { seasonalDrink: f.seasonal.value, promoDrink: f.promo.value });
-  form.querySelector(".settings__saved").textContent = homeResult.ok ? t("set.saved") : t("kiosk.offline");
+  if (shopResult.status === 0 || homeResult.status === 0) {
+    form.querySelector(".settings__saved").textContent = t("kiosk.offline");
+  } else if (!shopResult.ok || !homeResult.ok) {
+    form.querySelector(".settings__saved").textContent = t("set.saveFailed");
+  } else {
+    form.querySelector(".settings__saved").textContent = t("set.saved");
+  }
 });
 
 if (isManager(manager)) {

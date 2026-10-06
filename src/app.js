@@ -56,6 +56,15 @@ function createApp(shop) {
     res.json(shop);
   });
 
+  // Shop settings the owner saved (the browser fills in the defaults). Public: the pages need them.
+  app.get("/api/settings", async (req, res, next) => {
+    try {
+      res.json(await readJson("settings", {}));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Which drinks the home page tiles show (chosen in Settings). Public, so the home page can read it.
   app.get("/api/settings/home", async (req, res, next) => {
     try {

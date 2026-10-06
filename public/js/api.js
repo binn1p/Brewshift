@@ -65,3 +65,27 @@ async function syncHome() {
   saveDb(db);
   return true;
 }
+
+// The shop settings the owner saved on the server (hours, taxes, questions...), copied
+// into this browser. Returns true if they changed here. The home choices are kept.
+async function syncSettings() {
+  const result = await api("GET", "/api/settings");
+  if (!result.ok) return false;
+  // Compare what the page would show (with the defaults filled in), before and after
+  const before = JSON.stringify(withoutHome(getSettings()));
+  const db = loadDb();
+  db.settings = { ...result.data, ...(db.settings?.home ? { home: db.settings.home } : {}) };
+  saveDb(db);
+  return before !== JSON.stringify(withoutHome(getSettings()));
+}
+
+function withoutHome(settings) {
+  const { home, ...rest } = settings || {};
+  return rest;
+}
+
+// Every page that loads this file reloads once when the settings are new here,
+// so the page is drawn with them. The next load finds nothing new and does not reload.
+if (typeof loadDb === "function") {
+  syncSettings().then((changed) => { if (changed) window.location.reload(); });
+}

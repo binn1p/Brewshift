@@ -236,3 +236,35 @@ test("home tile choices: anyone can read them, only the owner can change them", 
   });
   assert.equal(denied.status, 403);
 });
+
+test("shop settings: anyone can read them, the owner saves them, bad values are refused", async () => {
+  const owner = await ownerCookie();
+  const current = (await call("GET", "/api/settings")).data;
+  const body = {
+    shop: { name: "minh", address1: "1 Test St", address2: "Montreal", phone: "5145550199", email: "a@b.ca" },
+    hours: { weekday: ["07:30", "18:00"], weekend: ["08:00", "17:00"] },
+    socials: { instagram: "", facebook: "", tiktok: "" },
+    taxes: { gst: 5, qst: 9.975 },
+    limits: { international: 24, partTime: 30, fullTime: 40 },
+    payPeriodStart: "2026-09-27",
+    loyalty: { pointsPerDrink: 1, pointValue: 1 },
+    loadingMs: 1800,
+    decor: "beans",
+    questions: current.questions || [],
+    pinnedQuestion: "",
+  };
+  const saved = await call("PUT", "/api/admin/settings", { cookie: owner, body });
+  assert.equal(saved.status, 200);
+
+  const read = await call("GET", "/api/settings");
+  assert.equal(read.data.hours.weekday[0], "07:30");
+  assert.equal(read.data.shop.address1, "1 Test St");
+
+  const bad = await call("PUT", "/api/admin/settings", { cookie: owner, body: { ...body, hours: { weekday: ["7am", "18:00"], weekend: [] } } });
+  assert.equal(bad.status, 400);
+  assert.ok(bad.data.fields.hours);
+
+  const staff = await staffMember();
+  const denied = await call("PUT", "/api/admin/settings", { cookie: staff.cookie, body });
+  assert.equal(denied.status, 403);
+});

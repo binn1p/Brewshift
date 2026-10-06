@@ -8,6 +8,7 @@ const { weekHours } = require("../lib/punches");
 const { toCsv } = require("../lib/csv");
 const { checkDrink, slugify } = require("../lib/menu");
 const { saveImage } = require("../lib/uploads");
+const { checkSettings } = require("../lib/settings");
 const { requireLogin, requireRole } = require("../middleware/auth");
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -147,6 +148,18 @@ function adminRouter(shop) {
   router.get("/menu", async (req, res, next) => {
     try {
       res.json(await readJson("menu"));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Save the shop settings (owner only). Replaces the whole saved set.
+  router.put("/settings", async (req, res, next) => {
+    try {
+      const checked = checkSettings(req.body);
+      if (checked.errors) return res.status(400).json({ error: "Please check the form.", fields: checked.errors });
+      await exclusive(() => writeJson("settings", checked.value));
+      res.json(checked.value);
     } catch (error) {
       next(error);
     }
