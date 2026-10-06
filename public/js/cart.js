@@ -166,6 +166,32 @@ function onlineCheckoutHTML() {
     </form>`;
 }
 
+// Send the bag to the server (POST /api/orders). Only what the customer chose
+// is sent: the server works out the prices itself. Returns { code, totalCents }
+// or throws an Error whose message is shown to the customer.
+async function sendOrder(bag, name, phone, pickupTime) {
+  const body = {
+    name,
+    phone,
+    pickupTime: pickupTime || null,
+    items: bag.map((line) => ({ id: line.id, quantity: line.qty, options: line.options })),
+  };
+  let response;
+  try {
+    response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(t("cart.serverDown"));
+  }
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 400) throw new Error(t("cart.checkError"));
+  if (!response.ok) throw new Error(t("cart.serverDown"));
+  return data;
+}
+
 function setupOnlineCheckout(body) {
   // Name and phone are required: the browser blocks the submit and shows a
   // message while one is missing. Both are saved so they survive page changes.
@@ -212,13 +238,24 @@ function setupOnlineCheckout(body) {
   pickupTime.max = close;
   pickupTime.addEventListener("input", checkPickup);
 
-  checkout.addEventListener("submit", (event) => {
+  checkout.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!pickup.value.trim()) pickup.value = "";
     checkPickup();
     if (!checkout.reportValidity()) return;
-    // Save the order, empty the bag, and show the order code
+    const notice = checkout.querySelector(".cart-window__notice");
+    notice.textContent = "";
+    // The server checks and prices the order. The bag is only emptied once it is saved.
+    let saved;
+    try {
+      saved = await sendOrder(readCart(), pickup.value.trim(), phone.value, pickupTime.value);
+    } catch (error) {
+      notice.textContent = error.message;
+      return;
+    }
+    // Keep a copy in this browser (account page, order log) under the server's code
     const order = addOrder(readCart(), pickup.value.trim(), phone.value, {
+      code: saved.code,
       customerId: member?.id || null,
       pickupAt: pickupTime.value ? atTime(dateKey(new Date()), pickupTime.value).toISOString() : null,
     });
