@@ -6,3 +6,6 @@ node_modules/
 
 # File rác của máy Mac
 .DS_Store
+# Real data (orders, punches, users): never commit. Seed files like menu.json are committed.
+data/*.json
+!data/menu.json

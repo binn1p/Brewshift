@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Server check</title>
+  <style>
+    :root { --ink: #3A2318; --cream: #F3E6CF; --orange: #D2652D; --mustard: #E0A93B; --red: #A63A2A; --olive: #6E7B3A; }
+    body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: var(--cream); color: var(--ink); }
+    h1 { margin: 0 0 4px; font-size: 26px; }
+    .sub { margin: 0 0 16px; opacity: .75; font-size: 14px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .card { background: #fff8ea; border: 2px solid var(--ink); border-radius: 12px; padding: 14px; box-shadow: 4px 4px 0 var(--ink); }
+    .card h2 { margin: 0 0 10px; font-size: 18px; }
+    button { font: inherit; background: var(--orange); color: #fff; border: 2px solid var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+    button:hover { background: var(--red); }
+    input, select { font: inherit; padding: 6px; border: 2px solid var(--ink); border-radius: 6px; margin: 2px 0; width: 100%; box-sizing: border-box; }
+    label { display: block; font-size: 13px; margin-top: 6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .menu { display: grid; gap: 8px; }
+    .drink { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--ink); padding: 4px 0; font-size: 14px; }
+    pre { background: var(--ink); color: var(--cream); padding: 10px; border-radius: 8px; overflow: auto; font-size: 12px; max-height: 260px; margin: 8px 0 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; border-bottom: 1px solid #d8c7a6; padding: 4px; vertical-align: top; }
+    .status-received { color: var(--olive); font-weight: bold; }
+    .err { color: var(--red); font-size: 13px; }
+    .log { list-style: none; padding: 0; margin: 0; font-family: ui-monospace, monospace; font-size: 12px; }
+    .log li { padding: 3px 0; border-bottom: 1px dotted #c9b48c; }
+    .ok { color: var(--olive); } .bad { color: var(--red); }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--olive); margin-right: 6px; }
+    .full { grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+  <h1>minh · server check</h1>
+  <p class="sub">Development page only. Every request below goes to the real server; the log shows what came back.</p>
+
+  <div class="grid">
+
+    <section class="card">
+      <h2><span class="dot" id="dot"></span>Server and shop</h2>
+      <button id="btn-health">Check health</button>
+      <button id="btn-shop">Load shop info</button>
+      <div id="shop-info" class="sub"></div>
+    </section>
+
+    <section class="card">
+      <h2>Menu (from data/menu.json)</h2>
+      <div id="menu" class="menu"></div>
+    </section>
+
+    <section class="card">
+      <h2>Place a test order (POST /api/orders)</h2>
+      <form id="order-form">
+        <label>Drink
+          <select id="drink"></select>
+        </label>
+        <div class="row">
+          <label>Quantity <input id="qty" type="number" min="1" max="20" value="2"></label>
+          <label>Milk
+            <select id="milk">
+              <option value="">Default</option>
+              <option>none</option><option>condensed</option><option>fresh</option>
+              <option>almond</option><option>oat</option><option>coconut</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Sugar
+            <select id="sugar">
+              <option value="">Default</option>
+              <option>0</option><option>25</option><option>50</option><option>75</option><option>100</option>
+            </select>
+          </label>
+          <label>Ice
+            <select id="ice">
+              <option value="">Default</option>
+              <option>0</option><option>25</option><option>50</option><option>75</option><option>100</option>
+            </select>
+          </label>
+        </div>
+        <label>Name <input id="name" value="Alex"></label>
+        <label>Phone <input id="phone" value="514 555 0123"></label>
+        <label>Note <input id="note" maxlength="200" placeholder="optional"></label>
+        <p><button type="submit">Send order</button></p>
+        <p id="order-msg" class="err"></p>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Check an order (GET /api/orders/:code)</h2>
+      <div class="row">
+        <input id="code" placeholder="e.g. K7Q2M">
+        <button id="btn-code">Look up</button>
+      </div>
+      <pre id="code-result">No lookup yet.</pre>
+    </section>
+
+    <section class="card full">
+      <h2>Orders in data/orders.json <button id="btn-refresh" style="float:right">Refresh</button></h2>
+      <table>
+        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Items</th><th>Total</th><th>Status</th><th>Received</th></tr></thead>
+        <tbody id="orders"><tr><td colspan="7">No orders yet.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section class="card full">
+      <h2>Request log</h2>
+      <ul id="log" class="log"></ul>
+    </section>
+
+  </div>
+
+  <script>
+    // Every network call goes through here, so the log shows all of them.
+    async function call(method, url, body) {
+      const started = performance.now();
+      const options = { method, headers: {} };
+      if (body !== undefined) {
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(body);
+      }
+      const response = await fetch(url, options);
+      const data = await response.json();
+      const ms = Math.round(performance.now() - started);
+      addLog(method, url, response.status, ms);
+      return { ok: response.ok, status: response.status, data };
+    }
+
+    function addLog(method, url, status, ms) {
+      const item = document.createElement("li");
+      const good = status < 400;
+      item.className = good ? "ok" : "bad";
+      item.textContent = `${new Date().toLocaleTimeString()}  ${method} ${url}  →  ${status}  (${ms} ms)`;
+      const list = document.getElementById("log");
+      list.prepend(item);
+    }
+
+    function money(cents) { return `$${(cents / 100).toFixed(2)}`; }
+
+    function setDot(good) {
+      document.getElementById("dot").style.background = good ? "var(--olive)" : "var(--red)";
+    }
+
+    // Health and shop
+    document.getElementById("btn-health").addEventListener("click", async () => {
+      try {
+        const r = await call("GET", "/api/health");
+        setDot(r.ok);
+        document.getElementById("shop-info").textContent = `Server is ${r.data.ok ? "up" : "down"}, time ${r.data.time}`;
+      } catch (e) { setDot(false); }
+    });
+
+    document.getElementById("btn-shop").addEventListener("click", async () => {
+      const r = await call("GET", "/api/shop");
+      const s = r.data;
+      document.getElementById("shop-info").textContent = `${s.name} · ${s.address} · ${s.phone} · ${s.timeZone}`;
+    });
+
+    // Menu: fills the cards and the drink list
+    async function loadMenu() {
+      const r = await call("GET", "/api/menu");
+      const menu = r.data;
+      const box = document.getElementById("menu");
+      const select = document.getElementById("drink");
+      box.replaceChildren();
+      select.replaceChildren();
+      menu.forEach((drink) => {
+        const row = document.createElement("div");
+        row.className = "drink";
+        const name = document.createElement("span");
+        name.textContent = `${drink.name.en} (${drink.viName})`;
+        const price = document.createElement("strong");
+        price.textContent = `$${drink.price.toFixed(2)}${drink.promo ? "  · 2 for 1" : ""}`;
+        row.append(name, price);
+        box.append(row);
+
+        const option = document.createElement("option");
+        option.value = drink.id;
+        option.textContent = drink.name.en;
+        select.append(option);
+      });
+    }
+
+    // Place an order. Only what the customer chose is sent; no prices.
+    document.getElementById("order-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const msg = document.getElementById("order-msg");
+      msg.textContent = "";
+
+      const option = {};
+      const milk = document.getElementById("milk").value;
+      const sugar = document.getElementById("sugar").value;
+      const ice = document.getElementById("ice").value;
+      if (milk) option.milk = milk;
+      if (sugar) option.sugar = Number(sugar);
+      if (ice) option.ice = Number(ice);
+
+      const body = {
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        note: document.getElementById("note").value,
+        items: [{
+          id: document.getElementById("drink").value,
+          quantity: Number(document.getElementById("qty").value),
+          options: option,
+        }],
+      };
+
+      const r = await call("POST", "/api/orders", body);
+      if (!r.ok) {
+        const fields = r.data.fields ? Object.values(r.data.fields).join(" ") : r.data.error;
+        msg.textContent = fields;
+        return;
+      }
+      msg.style.color = "var(--olive)";
+      msg.textContent = `Order ${r.data.code} placed. Total ${money(r.data.totalCents)}.`;
+      document.getElementById("code").value = r.data.code;
+      loadOrders();
+    });
+
+    // Look up one order by its code (what the customer sees)
+    document.getElementById("btn-code").addEventListener("click", async () => {
+      const code = document.getElementById("code").value.trim();
+      const r = await call("GET", `/api/orders/${encodeURIComponent(code)}`);
+      document.getElementById("code-result").textContent = JSON.stringify(r.data, null, 2);
+    });
+
+    // All orders (dev only): shows what is written to data/orders.json
+    async function loadOrders() {
+      const r = await call("GET", "/api/dev/orders");
+      const body = document.getElementById("orders");
+      body.replaceChildren();
+      if (r.data.length === 0) {
+        body.innerHTML = '<tr><td colspan="7">No orders yet.</td></tr>';
+        return;
+      }
+      r.data.slice().reverse().forEach((order) => {
+        const tr = document.createElement("tr");
+        const items = order.items.map((i) => `${i.quantity} × ${i.name}`).join(", ");
+        const cells = [
+          order.code,
+          order.customerName,
+          order.phone,
+          items,
+          money(order.totalCents),
+          order.status,
+          new Date(order.createdAt).toLocaleTimeString(),
+        ];
+        cells.forEach((text, index) => {
+          const td = document.createElement("td");
+          td.textContent = text;
+          if (index === 5) td.className = `status-${order.status}`;
+          tr.append(td);
+        });
+        body.append(tr);
+      });
+    }
+
+    document.getElementById("btn-refresh").addEventListener("click", loadOrders);
+
+    // Start: check health, load menu and orders
+    (async () => {
+      document.getElementById("btn-health").click();
+      document.getElementById("btn-shop").click();
+      await loadMenu();
+      await loadOrders();
+    })();
+  </script>
+</body>
+</html>

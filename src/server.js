@@ -6,9 +6,11 @@ const express = require("express");
 const path = require("path");
 const { loadShop } = require("./lib/shop");
 const { readJson } = require("./lib/storage");
+const { ordersRouter } = require("./routes/orders");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 // Load the café settings once at startup (stops the server if the file is broken)
 const shop = loadShop();
@@ -39,9 +41,33 @@ app.get("/api/menu", async (req, res, next) => {
   }
 });
 
+app.use("/api/orders", ordersRouter(shop));
+
+// Development only: a visual check page and a list of every order (with phone numbers).
+// Not available in production.
+if (!IS_PRODUCTION) {
+  app.use("/dev", express.static(path.join(__dirname, "..", "tools")));
+  app.get("/api/dev/orders", async (req, res, next) => {
+    try {
+      res.json(await readJson("orders", []));
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
 // Unknown API address: send a clear 404 instead of an HTML page
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "Not found" });
+});
+
+// Last stop for errors: a clear JSON message, never a stack trace (NFR-R1, NFR-S7)
+app.use((error, req, res, next) => {
+  if (error.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "The request is not valid JSON." });
+  }
+  console.error(error);
+  res.status(500).json({ error: "Something went wrong on the server." });
 });
 
 app.listen(PORT, () => {
