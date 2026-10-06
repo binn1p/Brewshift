@@ -1,0 +1,266 @@
+[
+  {
+    "id": "iced-milk-coffee",
+    "name": {
+      "en": "Iced Coffee with Milk",
+      "fr": "Café glacé au lait"
+    },
+    "viName": "Cà phê sữa đá",
+    "price": 6,
+    "tag": {
+      "en": "2 for 1",
+      "fr": "2 pour 1"
+    },
+    "promo": {
+      "buy": 2,
+      "pay": 1
+    },
+    "recipe": {
+      "milk": "condensed",
+      "sugar": 100,
+      "ice": 100
+    },
+    "spot": {
+      "x": 6,
+      "y": 3,
+      "w": 6,
+      "label": "right"
+    },
+    "ingredients": {
+      "en": [
+        "Robusta coffee, slow-dripped through a phin",
+        "Sweetened condensed milk",
+        "Ice"
+      ],
+      "fr": [
+        "Café robusta, filtré lentement au phin",
+        "Lait concentré sucré",
+        "Glace"
+      ]
+    },
+    "story": {
+      "en": "The drink every Saigon street corner wakes up to: a phin ticking over a glass, then a long stir until the milk turns the coffee caramel brown.",
+      "fr": "La boisson qui réveille chaque coin de rue de Saïgon : un phin qui goutte au-dessus d'un verre, puis on brasse longtemps jusqu'à ce que le lait donne au café une couleur caramel."
+    }
+  },
+  {
+    "id": "hot-milk-coffee",
+    "name": {
+      "en": "Hot Coffee with Milk",
+      "fr": "Café chaud au lait"
+    },
+    "viName": "Cà phê sữa nóng",
+    "price": 6,
+    "recipe": {
+      "milk": "condensed",
+      "sugar": 100,
+      "ice": null
+    },
+    "spot": {
+      "x": 29,
+      "y": 30,
+      "w": 17,
+      "label": "right"
+    },
+    "ingredients": {
+      "en": [
+        "Robusta coffee, slow-dripped through a phin",
+        "Sweetened condensed milk"
+      ],
+      "fr": [
+        "Café robusta, filtré lentement au phin",
+        "Lait concentré sucré"
+      ]
+    },
+    "story": {
+      "en": "The cool-morning version of the classic, kept warm in a small bowl of hot water while it drips.",
+      "fr": "La version des matins frais du grand classique, gardée au chaud dans un petit bol d'eau chaude pendant qu'elle s'égoutte."
+    }
+  },
+  {
+    "id": "egg-coffee",
+    "name": {
+      "en": "Egg Coffee",
+      "fr": "Café aux œufs"
+    },
+    "viName": "Cà phê trứng",
+    "price": 8,
+    "tag": {
+      "en": "Fall special",
+      "fr": "Spécial d'automne"
+    },
+    "recipe": {
+      "milk": "condensed",
+      "sugar": 100,
+      "ice": null
+    },
+    "spot": {
+      "x": 56,
+      "y": 2,
+      "w": 10,
+      "label": "right"
+    },
+    "ingredients": {
+      "en": [
+        "Phin coffee",
+        "Egg yolk",
+        "Condensed milk, whipped into a custard cream"
+      ],
+      "fr": [
+        "Café au phin",
+        "Jaune d'œuf",
+        "Lait concentré, fouetté en crème onctueuse"
+      ]
+    },
+    "story": {
+      "en": "Invented in Hà Nội in 1946, when fresh milk was scarce: egg yolk whipped with condensed milk until it tastes like custard, floated on strong coffee.",
+      "fr": "Inventé à Hà Nội en 1946, quand le lait frais était rare : du jaune d'œuf fouetté avec du lait concentré jusqu'à goûter la crème pâtissière, posé sur un café corsé."
+    }
+  },
+  {
+    "id": "hot-black-coffee",
+    "name": {
+      "en": "Hot Black Coffee",
+      "fr": "Café noir chaud"
+    },
+    "viName": "Cà phê đen nóng",
+    "price": 6,
+    "recipe": {
+      "milk": "none",
+      "sugar": 50,
+      "ice": null
+    },
+    "spot": {
+      "x": 85,
+      "y": 30,
+      "w": 10,
+      "label": "left"
+    },
+    "ingredients": {
+      "en": [
+        "Robusta coffee, slow-dripped through a phin",
+        "A little sugar"
+      ],
+      "fr": [
+        "Café robusta, filtré lentement au phin",
+        "Un peu de sucre"
+      ]
+    },
+    "story": {
+      "en": "Just coffee and patience. Watch it drip, drop by drop, and the day slows down with it.",
+      "fr": "Juste du café et de la patience. Regardez-le couler, goutte à goutte, et la journée ralentit avec lui."
+    }
+  },
+  {
+    "id": "coconut-coffee",
+    "name": {
+      "en": "Coconut Coffee",
+      "fr": "Café à la noix de coco"
+    },
+    "viName": "Cà phê dừa",
+    "price": 8,
+    "recipe": {
+      "milk": "coconut",
+      "sugar": 75,
+      "ice": 100
+    },
+    "spot": {
+      "x": 10,
+      "y": 52,
+      "w": 13,
+      "label": "right"
+    },
+    "ingredients": {
+      "en": [
+        "Phin coffee",
+        "Coconut milk",
+        "Condensed milk",
+        "Ice"
+      ],
+      "fr": [
+        "Café au phin",
+        "Lait de coco",
+        "Lait concentré",
+        "Glace"
+      ]
+    },
+    "story": {
+      "en": "A southern twist: coconut groves meet coffee farms in one glass, creamy and a little tropical.",
+      "fr": "Une touche du Sud : les cocoteraies rencontrent les plantations de café dans un même verre, onctueux et un peu tropical."
+    }
+  },
+  {
+    "id": "iced-black-coffee",
+    "name": {
+      "en": "Iced Black Coffee",
+      "fr": "Café noir glacé"
+    },
+    "viName": "Cà phê đen đá",
+    "price": 6,
+    "recipe": {
+      "milk": "none",
+      "sugar": 50,
+      "ice": 100
+    },
+    "spot": {
+      "x": 37,
+      "y": 66,
+      "w": 11,
+      "label": "right"
+    },
+    "ingredients": {
+      "en": [
+        "Robusta coffee, slow-dripped through a phin",
+        "A little sugar",
+        "Ice"
+      ],
+      "fr": [
+        "Café robusta, filtré lentement au phin",
+        "Un peu de sucre",
+        "Glace"
+      ]
+    },
+    "story": {
+      "en": "No milk, no hiding. The way old uncles drink it at plastic tables, slowly, between long conversations.",
+      "fr": "Sans lait, sans détour. Comme le boivent les vieux oncles aux tables de plastique, lentement, entre deux longues conversations."
+    }
+  },
+  {
+    "id": "orange-coffee",
+    "name": {
+      "en": "Orange Coffee",
+      "fr": "Café à l'orange"
+    },
+    "viName": "Cà phê cam",
+    "price": 8,
+    "recipe": {
+      "milk": "none",
+      "sugar": 50,
+      "ice": 100
+    },
+    "spot": {
+      "x": 66,
+      "y": 60,
+      "w": 11,
+      "label": "right"
+    },
+    "ingredients": {
+      "en": [
+        "Fresh-squeezed orange juice",
+        "Phin coffee",
+        "A little honey",
+        "Ice"
+      ],
+      "fr": [
+        "Jus d'orange fraîchement pressé",
+        "Café au phin",
+        "Un peu de miel",
+        "Glace"
+      ]
+    },
+    "story": {
+      "en": "It sounds strange until the first sip: bright citrus underneath, dark coffee floating on top, like sunrise over a dark river.",
+      "fr": "Ça semble étrange jusqu'à la première gorgée : un agrume vif en dessous, un café sombre qui flotte au-dessus, comme un lever de soleil sur une rivière sombre."
+    }
+  }
+]

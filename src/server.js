@@ -5,6 +5,7 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const { loadShop } = require("./lib/shop");
+const { readJson } = require("./lib/storage");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,16 @@ app.get("/api/health", (req, res) => {
 // Café name, address, hours and colours for the public pages (FR-02)
 app.get("/api/shop", (req, res) => {
   res.json(shop);
+});
+
+// Menu items that are on sale (FR-10). Unavailable items are left out.
+app.get("/api/menu", async (req, res, next) => {
+  try {
+    const menu = await readJson("menu");
+    res.json(menu.filter((drink) => drink.available !== false));
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Unknown API address: send a clear 404 instead of an HTML page
