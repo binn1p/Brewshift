@@ -55,6 +55,11 @@ function authRouter() {
           pinHash,
           role: "staff",
           status: "pending",
+          type: "part",
+          residency: "local",
+          availability: {},
+          birthDate: "",
+          phone: "",
           createdAt: new Date().toISOString(),
         };
         users.push(user);
@@ -74,7 +79,7 @@ function authRouter() {
     try {
       const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
       const password = typeof req.body?.password === "string" ? req.body.password : "";
-      const user = findByEmail(await readUsers(), email);
+      const user = email ? findByEmail(await readUsers(), email) : null;
       const matches = user && password && (await bcrypt.compare(password, user.passwordHash));
 
       if (!matches) return res.status(401).json({ error: "Wrong email or password." });

@@ -233,9 +233,9 @@ test("deactivating a staff member blocks their login and PIN at once", async () 
   assert.equal(pin.status, 403);
 });
 
-test("the staff list leaves out the owner account", async () => {
+test("the staff list includes the owner, with the owner role", async () => {
   const owner = await ownerCookie();
   const list = await call("GET", "/api/staff", { cookie: owner });
   assert.equal(list.status, 200);
-  assert.ok(list.data.every((u) => u.role !== "owner"));
+  assert.ok(list.data.some((u) => u.role === "owner"));
 });

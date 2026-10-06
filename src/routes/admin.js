@@ -7,7 +7,10 @@ const { publicUser, readUsers } = require("../lib/users");
 const { weekHours } = require("../lib/punches");
 const { toCsv } = require("../lib/csv");
 const { checkDrink, slugify } = require("../lib/menu");
-const { saveImage } = require("../lib/uploads");
+const { saveImage, uploadsDir } = require("../lib/uploads");
+const crypto = require("crypto");
+const fs = require("fs/promises");
+const path = require("path");
 const { checkSettings } = require("../lib/settings");
 const { checkLines, priceOrder } = require("../lib/orders");
 const { loyaltyRules } = require("../lib/customers");
@@ -256,6 +259,142 @@ function adminRouter(shop) {
       });
       if (result.error) return res.status(result.error).json({ error: result.message });
       res.json({ code: result.order.code, status: result.order.status, totalCents: result.order.totalCents });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Stock: ingredients on hand and the level that means "low" (owner)
+  const stockItem = (input) => {
+    const name = input?.name && typeof input.name === "object" ? input.name : {};
+    const errors = {};
+    if (typeof name.en !== "string" || !name.en.trim() || name.en.length > 60) errors.name = "Please enter the English name.";
+    if (input?.unit !== undefined && (typeof input.unit !== "string" || input.unit.length > 20)) errors.unit = "Unit is too long.";
+    if (typeof input?.qty !== "number" || !(input.qty >= 0) || input.qty > 1000000) errors.qty = "Quantity must be 0 or more.";
+    if (typeof input?.min !== "number" || !(input.min >= 0) || input.min > 1000000) errors.min = "Low level must be 0 or more.";
+    if (Object.keys(errors).length > 0) return { errors };
+    return { value: { name: { en: name.en.trim(), fr: (typeof name.fr === "string" && name.fr.trim()) || name.en.trim() }, unit: input.unit || "", qty: input.qty, min: input.min } };
+  };
+
+  router.get("/stock", async (req, res, next) => {
+    try {
+      res.json(await readJson("stock", []));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/stock", async (req, res, next) => {
+    try {
+      const checked = stockItem(req.body);
+      if (checked.errors) return res.status(400).json({ error: "Please check the form.", fields: checked.errors });
+      const item = await exclusive(async () => {
+        const stock = await readJson("stock", []);
+        const created = { id: `st_${crypto.randomBytes(4).toString("hex")}`, ...checked.value };
+        stock.push(created);
+        await writeJson("stock", stock);
+        return created;
+      });
+      res.status(201).json(item);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.put("/stock/:id", async (req, res, next) => {
+    try {
+      const checked = stockItem(req.body);
+      if (checked.errors) return res.status(400).json({ error: "Please check the form.", fields: checked.errors });
+      const result = await exclusive(async () => {
+        const stock = await readJson("stock", []);
+        const item = stock.find((s) => s.id === req.params.id);
+        if (!item) return { error: 404 };
+        Object.assign(item, checked.value);
+        await writeJson("stock", stock);
+        return { item };
+      });
+      if (result.error) return res.status(404).json({ error: "No item with that id." });
+      res.json(result.item);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/stock/:id", async (req, res, next) => {
+    try {
+      const result = await exclusive(async () => {
+        const stock = await readJson("stock", []);
+        const remaining = stock.filter((s) => s.id !== req.params.id);
+        if (remaining.length === stock.length) return { error: 404 };
+        await writeJson("stock", remaining);
+        return { ok: true };
+      });
+      if (result.error) return res.status(404).json({ error: "No item with that id." });
+      res.json({ ok: true });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Photo library: uploaded photos with their category (owner)
+  const PHOTO_CATEGORIES = ["product", "shop", "other"];
+  router.get("/photos", async (req, res, next) => {
+    try {
+      res.json(await readJson("photos", []));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/photos", async (req, res, next) => {
+    try {
+      const url = req.body?.url;
+      const category = PHOTO_CATEGORIES.includes(req.body?.category) ? req.body.category : "other";
+      if (typeof url !== "string" || !url.startsWith("/uploads/")) return res.status(400).json({ error: "Upload the photo first." });
+      const photo = await exclusive(async () => {
+        const photos = await readJson("photos", []);
+        const created = { id: `ph_${crypto.randomBytes(4).toString("hex")}`, url, category, addedAt: new Date().toISOString() };
+        photos.unshift(created);
+        await writeJson("photos", photos);
+        return created;
+      });
+      res.status(201).json(photo);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch("/photos/:id", async (req, res, next) => {
+    try {
+      if (!PHOTO_CATEGORIES.includes(req.body?.category)) return res.status(400).json({ error: "Choose product, shop or other." });
+      const result = await exclusive(async () => {
+        const photos = await readJson("photos", []);
+        const photo = photos.find((p) => p.id === req.params.id);
+        if (!photo) return { error: 404 };
+        photo.category = req.body.category;
+        await writeJson("photos", photos);
+        return { photo };
+      });
+      if (result.error) return res.status(404).json({ error: "No photo with that id." });
+      res.json(result.photo);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/photos/:id", async (req, res, next) => {
+    try {
+      const result = await exclusive(async () => {
+        const photos = await readJson("photos", []);
+        const photo = photos.find((p) => p.id === req.params.id);
+        if (!photo) return { error: 404 };
+        await writeJson("photos", photos.filter((p) => p.id !== req.params.id));
+        return { photo };
+      });
+      if (result.error) return res.status(404).json({ error: "No photo with that id." });
+      // Remove the file too, if it is one of ours
+      await fs.unlink(path.join(uploadsDir(), path.basename(result.photo.url))).catch(() => {});
+      res.json({ ok: true });
     } catch (error) {
       next(error);
     }

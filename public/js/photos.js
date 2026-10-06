@@ -44,10 +44,9 @@ function showGrid() {
         option.selected = photo.category === cat;
         select.append(option);
       });
-      select.addEventListener("change", () => {
-        const photos = getPhotos();
-        photos.find((p) => p.id === photo.id).category = select.value;
-        savePhotos(photos);
+      select.addEventListener("change", async () => {
+        await api("PATCH", `/api/admin/photos/${photo.id}`, { category: select.value });
+        await syncPhotos();
       });
       const remove = document.createElement("button");
       remove.type = "button";
@@ -55,8 +54,10 @@ function showGrid() {
       remove.textContent = t("admin.delete");
       remove.addEventListener("click", () => {
         if (!confirm(t("photos.deleteConfirm"))) return;
-        savePhotos(getPhotos().filter((p) => p.id !== photo.id));
-        showGrid();
+        api("DELETE", `/api/admin/photos/${photo.id}`).then(async () => {
+          await syncPhotos();
+          showGrid();
+        });
       });
       caption.append(select, remove);
     }
@@ -67,17 +68,24 @@ function showGrid() {
 
 document.getElementById("upload").addEventListener("change", async (event) => {
   errorBox.textContent = "";
-  const photos = getPhotos();
   for (const file of event.target.files) {
     const src = await shrinkImage(file);
-    photos.unshift({ id: newId("ph"), src, category: category === "all" ? "other" : category, addedAt: new Date().toISOString() });
+    // The photo goes to the server; the server gives its address, and the library records it
+    const uploaded = await api("POST", "/api/admin/uploads", { dataUrl: src });
+    if (!uploaded.ok) {
+      errorBox.textContent = uploaded.status === 413 ? t("photos.full") : t("kiosk.offline");
+      continue;
+    }
+    await api("POST", "/api/admin/photos", { url: uploaded.data.url, category: category === "all" ? "other" : category });
   }
-  if (!savePhotos(photos)) errorBox.textContent = t("photos.full");
   event.target.value = "";
+  await syncPhotos();
   showGrid();
 });
 
 if (isManager(manager)) {
-  showFilter();
-  showGrid();
+  syncPhotos().then(() => {
+    showFilter();
+    showGrid();
+  });
 }

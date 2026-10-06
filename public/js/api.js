@@ -158,21 +158,30 @@ async function syncStaff() {
   if (!me.ok || !list.ok) return false;
   const db = loadDb();
   const before = new Map((db.users || []).map((u) => [u.id, u]));
-  const local = (user, role) => ({
-    availability: ALWAYS_FREE,
-    type: "part",
-    residency: "local",
-    birthDate: "",
-    phone: "",
-    pin: "",
-    ...(before.get(user.id) || {}),
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role,
-    status: user.status,
-  });
-  db.users = [local(me.data.user, "manager"), ...list.data.map((user) => local(user, "staff"))];
+  const local = (user) => {
+    const prev = before.get(user.id) || {};
+    return {
+      availability: ALWAYS_FREE,
+      type: "part",
+      residency: "local",
+      birthDate: "",
+      phone: "",
+      pin: "",
+      ...prev,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role === "owner" ? "manager" : "staff",
+      status: user.status,
+      birthDate: user.birthDate,
+      phone: user.phone,
+      type: user.type,
+      residency: user.residency,
+      availability: user.availability,
+    };
+  };
+  const everyone = [me.data.user, ...list.data.filter((u) => u.id !== me.data.user.id)];
+  db.users = everyone.map(local);
   saveDb(db);
   return true;
 }
@@ -237,4 +246,37 @@ function pushOrderEdit(code, lines) {
 
 function pushOrderDelete(code) {
   return api("PATCH", `/api/admin/orders/${code}`, { status: "deleted" });
+}
+
+// Stock on hand, from the server, copied into this browser's store
+async function syncStock() {
+  const result = await api("GET", "/api/admin/stock");
+  if (!result.ok) return false;
+  const db = loadDb();
+  db.stock = result.data;
+  saveDb(db);
+  return true;
+}
+
+// Save one stock item: a new one is created, an existing one is updated. Then copy again.
+async function pushStockItem(item) {
+  const result = item.id
+    ? await api("PUT", `/api/admin/stock/${item.id}`, { name: item.name, unit: item.unit, qty: item.qty, min: item.min })
+    : await api("POST", "/api/admin/stock", { name: item.name, unit: item.unit, qty: item.qty, min: item.min });
+  await syncStock();
+  return result;
+}
+
+async function deleteStockItem(id) {
+  const result = await api("DELETE", `/api/admin/stock/${id}`);
+  await syncStock();
+  return result;
+}
+
+// The photo library from the server, copied into this browser's store (uploads only)
+async function syncPhotos() {
+  const result = await api("GET", "/api/admin/photos");
+  if (!result.ok) return false;
+  savePhotos(result.data.map((p) => ({ id: p.id, src: p.url, category: p.category, addedAt: p.addedAt })));
+  return true;
 }

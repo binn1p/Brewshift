@@ -72,8 +72,9 @@ function showGrid() {
       approve.type = "button";
       approve.className = "button button--small";
       approve.textContent = t("emp.approve");
-      approve.addEventListener("click", () => {
-        saveUser({ ...user, status: "approved" });
+      approve.addEventListener("click", async () => {
+        await api("POST", `/api/staff/${user.id}/approve`);
+        await syncStaff();
         showFilter();
         showGrid();
       });
@@ -108,7 +109,7 @@ function openEditor(user) {
         <label class="field"><span>${t("emp.birth")}</span><input name="birthDate" type="date"></label>
         <label class="field"><span>${t("emp.phone")}</span><input name="phone" type="tel"></label>
         <label class="field"><span>${t("emp.email")}</span><input name="email" type="email"></label>
-        <label class="field"><span>${t("emp.pin")}</span><input name="pin" inputmode="numeric" maxlength="6" required autocomplete="off"></label>
+        <label class="field"><span>${t("emp.pin")}</span><input name="pin" inputmode="numeric" maxlength="6" ${isNew ? "required" : ""} autocomplete="off" placeholder="${isNew ? "" : "••••••"}"></label>
         <label class="field"><span>${t("emp.role")}</span><select name="role">${opt("staff", t("role.staff"), u.role)}${opt("manager", t("role.manager"), u.role)}</select></label>
         <label class="field"><span>${t("emp.type")}</span><select name="type">${opt("part", t("type.part"), u.type)}${opt("full", t("type.full"), u.type)}</select></label>
         <label class="field"><span>${t("emp.residency")}</span><select name="residency">${opt("local", t("residency.local"), u.residency)}${opt("international", t("residency.international"), u.residency)}</select></label>
@@ -140,38 +141,47 @@ function openEditor(user) {
   f.birthDate.value = u.birthDate || "";
   f.phone.value = u.phone || "";
   f.email.value = u.email || "";
-  f.pin.value = u.pin || "";
+  f.pin.value = "";
 
   const close = () => editor.close();
   editor.querySelector(".window__close").addEventListener("click", close);
   form.querySelector("[data-cancel]").addEventListener("click", close);
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const error = form.querySelector(".admin__error");
     const pin = f.pin.value.trim();
-    if (!f.name.value.trim()) { error.textContent = t("emp.nameRequired"); return; }
-    if (!/^\d{6}$/.test(pin)) { error.textContent = t("emp.pinInvalid"); return; }
-    if (isPinTaken(pin, u.id)) { error.textContent = t("emp.pinTaken"); return; }
 
     const availability = {};
     DAY_KEYS.forEach((d) => {
       const off = form.querySelector(`[data-off="${d}"]`).checked;
       availability[d] = off ? null : [form.querySelector(`[data-start="${d}"]`).value, form.querySelector(`[data-end="${d}"]`).value];
     });
-    saveUser({
-      ...u,
+    // Saved on the server (the PIN only when a new one is typed); the server checks everything
+    const body = {
       name: f.name.value.trim(),
       birthDate: f.birthDate.value,
       phone: f.phone.value.trim(),
       email: f.email.value.trim(),
-      pin,
+      pin: pin || undefined,
       role: f.role.value,
       type: f.type.value,
       residency: f.residency.value,
       status: f.status.value,
       availability,
-    });
+    };
+    const result = isNew
+      ? await api("POST", "/api/staff", body)
+      : await api("PUT", `/api/staff/${u.id}`, body);
+    if (!result.ok) {
+      const fields = result.data?.fields || {};
+      if (fields.name) error.textContent = t("emp.nameRequired");
+      else if (fields.pin) error.textContent = t("emp.pinInvalid");
+      else if ((result.data?.error || "").includes("PIN")) error.textContent = t("emp.pinTaken");
+      else error.textContent = result.status === 0 ? t("kiosk.offline") : t("cart.checkError");
+      return;
+    }
+    await syncStaff();
     close();
     showFilter();
     showGrid();
@@ -183,6 +193,8 @@ function openEditor(user) {
 document.getElementById("add").addEventListener("click", () => openEditor(null));
 
 if (isManager(manager)) {
-  showFilter();
-  showGrid();
+  syncStaff().then(() => {
+    showFilter();
+    showGrid();
+  });
 }

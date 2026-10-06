@@ -31,8 +31,7 @@ function showStock() {
     row.querySelector(".stock__min").textContent = `${item.min} ${tr(item.unit)}`;
     row.querySelectorAll("[data-change]").forEach((button) => button.addEventListener("click", () => {
       item.qty = Math.max(0, Math.round((item.qty + Number(button.dataset.change)) * 10) / 10);
-      saveStockItem(item);
-      showStock();
+      pushStockItem(item).then(showStock);
     }));
     row.querySelector("td:last-child button").addEventListener("click", () => openEditor(item));
     body.append(row);
@@ -74,15 +73,15 @@ function openEditor(item) {
   editor.querySelector(".window__close").addEventListener("click", () => editor.close());
   editor.querySelector("[data-delete]")?.addEventListener("click", () => {
     const db = loadDb();
-    db.stock = db.stock.filter((x) => x.id !== s.id);
-    saveDb(db);
-    editor.close();
-    showStock();
+    deleteStockItem(s.id).then(() => {
+      editor.close();
+      showStock();
+    });
   });
-  editor.querySelector("form").addEventListener("submit", (event) => {
+  editor.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const unitChanged = f.unit.value.trim() !== unitText;
-    saveStockItem({
+    await pushStockItem({
       ...s,
       name: { en: f.en.value.trim(), fr: f.fr.value.trim() || f.en.value.trim() },
       unit: unitChanged || isNew ? f.unit.value.trim() : s.unit,
@@ -103,4 +102,4 @@ document.getElementById("csv").addEventListener("click", () => {
   downloadCsv(`stock-${dateKey(new Date())}.csv`, rows);
 });
 
-if (isManager(manager)) showStock();
+if (isManager(manager)) syncStock().then(showStock);
