@@ -5,6 +5,22 @@ require("dotenv").config();
 const { loadShop } = require("./lib/shop");
 const { ensureOwner } = require("./lib/users");
 const { createApp } = require("./app");
+const fs = require("fs/promises");
+const path = require("path");
+
+// The menu ships in the code (data/menu.json). If the data folder is somewhere else
+// (DATA_DIR, e.g. a Render disk) and the file is not there yet, copy the starting menu in.
+async function seedMenuIfMissing() {
+  const target = process.env.DATA_DIR;
+  if (!target) return;
+  const file = path.join(target, "menu.json");
+  try {
+    await fs.access(file);
+  } catch {
+    await fs.mkdir(target, { recursive: true });
+    await fs.copyFile(path.join(__dirname, "..", "data", "menu.json"), file);
+  }
+}
 
 const PORT = process.env.PORT || 3000;
 
@@ -12,12 +28,13 @@ const PORT = process.env.PORT || 3000;
 const shop = loadShop();
 
 // Create the owner account from .env if it does not exist yet (FR-25)
-ensureOwner({
+seedMenuIfMissing()
+  .then(() => ensureOwner({
   email: process.env.OWNER_EMAIL,
   password: process.env.OWNER_PASSWORD,
   pin: process.env.OWNER_PIN,
   name: process.env.OWNER_NAME,
-})
+}))
   .then(() => {
     createApp(shop).listen(PORT, () => {
       console.log(`Brewshift server running at http://localhost:${PORT}`);

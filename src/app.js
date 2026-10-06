@@ -23,6 +23,8 @@ const HOME_DEFAULTS = { seasonalDrink: "egg-coffee", promoDrink: "iced-milk-coff
 function createApp(shop) {
   const app = express();
   const IS_PRODUCTION = process.env.NODE_ENV === "production";
+  // Behind Render's HTTPS proxy: trust it, so secure cookies are sent back to the browser
+  if (IS_PRODUCTION) app.set("trust proxy", 1);
 
   // Read JSON bodies sent by the browser (fetch with a JSON body)
   app.use(express.json({ limit: "3mb" }));
