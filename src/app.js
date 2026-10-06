@@ -13,6 +13,8 @@ const { kioskRouter } = require("./routes/kiosk");
 const { punchesRouter } = require("./routes/punches");
 const { queueRouter } = require("./routes/queue");
 const { adminRouter } = require("./routes/admin");
+const { ownerShiftsRouter, myShiftsRouter } = require("./routes/shifts");
+const { requireLogin, requireRole } = require("./middleware/auth");
 
 function createApp(shop) {
   const app = express();
@@ -65,6 +67,8 @@ function createApp(shop) {
   app.use("/api/punches", punchesRouter(shop));
   app.use("/api/queue", queueRouter());
   app.use("/api/admin", adminRouter(shop));
+  app.use("/api/admin/shifts", requireLogin, requireRole("owner"), ownerShiftsRouter());
+  app.use("/api/shifts", myShiftsRouter());
 
   // Development only: a visual check page and a list of every order (with phone numbers).
   // Not available in production.
