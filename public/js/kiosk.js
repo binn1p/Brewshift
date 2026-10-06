@@ -91,9 +91,9 @@ showCode();
 api("POST", "/api/auth/logout");
 
 function shake() {
-  pinForm.classList.remove("is-wrong");
-  void pinForm.offsetWidth; // restart the shake animation
-  pinForm.classList.add("is-wrong");
+  pinRow.classList.remove("is-wrong");
+  void pinRow.offsetWidth; // restart the shake animation
+  pinRow.classList.add("is-wrong");
 }
 
 // The PIN is checked on the server. A correct PIN starts a session there.
