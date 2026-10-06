@@ -55,34 +55,60 @@ function checkOrder(body, menu) {
     }
   }
 
-  const lines = [];
-  if (!Array.isArray(input.items) || input.items.length === 0) {
-    errors.items = "Your bag is empty.";
-  } else if (input.items.length > MAX_LINES) {
-    errors.items = `An order can have at most ${MAX_LINES} lines.`;
-  } else {
-    input.items.forEach((item, index) => {
-      const drink = menu.find((d) => d.id === item?.id);
-      if (!drink) {
-        errors.items = `Item ${index + 1} is not on the menu or not available.`;
-        return;
-      }
-      const quantity = item.quantity;
-      if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
-        errors.items = `Quantity for ${drink.id} must be a whole number from 1 to ${MAX_QUANTITY}.`;
-        return;
-      }
-      const options = checkOptions(item.options ?? {}, drink);
-      if (options.error) {
-        errors.items = options.error;
-        return;
-      }
-      lines.push({ drink, quantity, options: options.value });
-    });
-  }
+  const checkedLines = checkLines(input.items, menu);
+  if (checkedLines.error) errors.items = checkedLines.error;
 
   if (Object.keys(errors).length > 0) return { errors };
-  return { value: { name, phone, note, pickupTime, lines } };
+  return { value: { name, phone, note, pickupTime, lines: checkedLines.lines } };
+}
+
+// Checks the list of drinks in a bag. Returns { error } or { lines }.
+function checkLines(items, menu) {
+  if (!Array.isArray(items) || items.length === 0) return { error: "Your bag is empty." };
+  if (items.length > MAX_LINES) return { error: `An order can have at most ${MAX_LINES} lines.` };
+  const lines = [];
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    const drink = menu.find((d) => d.id === item?.id);
+    if (!drink) return { error: `Item ${index + 1} is not on the menu or not available.` };
+    const quantity = item.quantity;
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
+      return { error: `Quantity for ${drink.id} must be a whole number from 1 to ${MAX_QUANTITY}.` };
+    }
+    const options = checkOptions(item.options ?? {}, drink);
+    if (options.error) return { error: options.error };
+    lines.push({ drink, quantity, options: options.value });
+  }
+  return { lines };
+}
+
+// Checks an order taken at the counter: the name, how it is paid, the bag, and
+// optionally a member (by phone) and whether to spend points. The price is worked out
+// by the route, because points change it. Returns { errors } or { value }.
+function checkCounterOrder(body, menu) {
+  const input = body && typeof body === "object" ? body : {};
+  const errors = {};
+  const customerName = typeof input.customerName === "string" ? input.customerName.trim() : "";
+  if (!customerName || customerName.length > 40) errors.customerName = "Please enter the customer's name (40 characters maximum).";
+  if (input.payment !== "cash" && input.payment !== "card") errors.payment = "Choose cash or card.";
+  const checkedLines = checkLines(input.items, menu);
+  if (checkedLines.error) errors.items = checkedLines.error;
+  let customerPhone = null;
+  if (input.customerPhone !== undefined && input.customerPhone !== null && input.customerPhone !== "") {
+    customerPhone = String(input.customerPhone).replace(/\D/g, "").slice(-10);
+    if (customerPhone.length !== 10) errors.customerPhone = "Enter a 10-digit phone number.";
+  }
+  if (Object.keys(errors).length > 0) return { errors };
+  return {
+    value: {
+      customerName,
+      payment: input.payment,
+      cashGiven: input.cashReceived === undefined || input.cashReceived === null ? null : Number(input.cashReceived),
+      customerPhone,
+      usePoints: input.usePoints === true,
+      lines: checkedLines.lines,
+    },
+  };
 }
 
 // Customize choices for one drink: milk, sugar and (iced drinks only) ice.
@@ -108,7 +134,7 @@ function checkOptions(options, drink) {
 
 // Price of the whole order, in cents, with the same promo rule as the browser
 // (a promo like { buy: 2, pay: 1 } makes every second drink free).
-function priceOrder(lines, taxRates) {
+function priceOrder(lines, taxRates, discountCents = 0) {
   const priced = lines.map(({ drink, quantity, options }) => {
     const unitCents = Math.round(drink.price * 100) + MILK_EXTRA_CENTS[options.milk];
     const free = drink.promo ? Math.floor(quantity / drink.promo.buy) * (drink.promo.buy - drink.promo.pay) : 0;
@@ -116,13 +142,15 @@ function priceOrder(lines, taxRates) {
     return { drink, quantity, options, unitCents, lineCents };
   });
 
-  const subtotalCents = priced.reduce((sum, line) => sum + line.lineCents, 0);
+  const itemsCents = priced.reduce((sum, line) => sum + line.lineCents, 0);
+  // Points come off before tax, and never below zero
+  const subtotalCents = Math.max(0, itemsCents - discountCents);
   const taxes = [
     { label: "GST", cents: Math.round((subtotalCents * taxRates.gst) / 100) },
     { label: "QST", cents: Math.round((subtotalCents * taxRates.qst) / 100) },
   ];
   const totalCents = subtotalCents + taxes.reduce((sum, tax) => sum + tax.cents, 0);
-  return { lines: priced, subtotalCents, taxes, totalCents };
+  return { lines: priced, itemsCents, discountCents: itemsCents - subtotalCents, subtotalCents, taxes, totalCents };
 }
 
-module.exports = { makeCode, checkOrder, priceOrder };
+module.exports = { makeCode, checkOrder, checkCounterOrder, priceOrder };

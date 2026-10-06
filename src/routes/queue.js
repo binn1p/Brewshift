@@ -4,6 +4,7 @@
 const express = require("express");
 const { readJson, writeJson, exclusive } = require("../lib/storage");
 const { requireLogin, requireRole } = require("../middleware/auth");
+const { loyaltyRules } = require("../lib/customers");
 
 const NEXT = { received: "in_progress", in_progress: "ready", ready: "picked_up" };
 const OPEN = ["received", "in_progress", "ready"];
@@ -21,7 +22,7 @@ function queueRouter() {
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
         .map((o) => ({
           code: o.code,
-          source: "online",
+          source: o.source || "online",
           customerName: o.customerName,
           items: o.items.map((i) => ({ name: i.name, quantity: i.quantity, options: i.options })),
           status: o.status,
@@ -49,6 +50,17 @@ function queueRouter() {
         order.history = order.history || [];
         order.history.push({ at: new Date().toISOString(), by: req.user.id, from: order.status, to: wanted });
         order.status = wanted;
+        // An online order is paid at pickup: that is when a member earns points
+        if (wanted === "picked_up" && order.customerId && !order.pointsEarned) {
+          const customers = await readJson("customers", []);
+          const member = customers.find((c) => c.id === order.customerId);
+          if (member) {
+            const rules = loyaltyRules(await readJson("settings", {}));
+            order.pointsEarned = order.items.reduce((sum, i) => sum + i.quantity, 0) * rules.pointsPerDrink;
+            member.points += order.pointsEarned;
+            await writeJson("customers", customers);
+          }
+        }
         await writeJson("orders", orders);
         return { order };
       });
