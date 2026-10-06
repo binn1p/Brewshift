@@ -267,6 +267,7 @@ function setupOnlineCheckout(body) {
         <p class="order-done__label">${t("cart.code")}</p>
         <p class="order-done__code"></p>
         <p class="order-done__when"></p>
+        <p class="order-done__status" aria-live="polite"></p>
         <p>${t("cart.paymentSoon")}</p>
         ${member ? `<a class="button button--small" href="account.html">${t("loyalty.track")}</a>` : ""}
       </div>`;
@@ -275,7 +276,33 @@ function setupOnlineCheckout(body) {
     cartWindow.querySelector(".order-done__when").textContent = order.pickupAt
       ? t("cart.readyAt", { time: pickupTime.value })
       : t("cart.readyNow");
+    watchOrderStatus(saved.code);
   });
+}
+
+// Shows the order's live status on the confirmation (FR-18). Asks the server
+// every 15 seconds until the order is ready, and stops when the bag is closed.
+function watchOrderStatus(code) {
+  const line = cartWindow.querySelector(".order-done__status");
+  let timer = null;
+  const show = (status) => {
+    line.textContent = t(`cart.status.${status}`);
+  };
+  const check = async () => {
+    if (!cartWindow.open) return clearInterval(timer);
+    try {
+      const response = await fetch(`/api/orders/${encodeURIComponent(code)}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      show(data.status);
+      if (data.status === "ready" || data.status === "picked_up") clearInterval(timer);
+    } catch {
+      // Offline for a moment: the next check tries again
+    }
+  };
+  show("received");
+  timer = setInterval(check, 15000);
+  check();
 }
 
 // ---------- Counter checkout (staff) ----------
