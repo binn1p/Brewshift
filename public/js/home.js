@@ -48,9 +48,17 @@ function renderTiles() {
     const photo = new URL(isSeed ? `images/menu/${seasonal.id}-top.jpg` : seasonal.sidePhoto || seasonal.photo, document.baseURI).href;
     tile.style.setProperty("--photo", `url("${photo}")`);
   }
-  const promoDrink = findDrink(homeSettings.promoDrink);
-  if (promoDrink) {
-    document.querySelector(".tile--promo").href = `menu.html?drink=${encodeURIComponent(promoDrink.id)}&qty=${promoDrink.promo ? promoDrink.promo.buy : 1}`;
+  // Promo tile: every drink on sale with a 2-for-1 deal. Names of all of them; the photo
+  // and the link are for the first one.
+  const promoDrinks = getMenu().filter((drink) => drink.available && drink.promo && !isSoldOut(drink));
+  if (promoDrinks.length) {
+    const first = promoDrinks[0];
+    const promoTile = document.querySelector(".tile--promo");
+    promoTile.href = `menu.html?drink=${encodeURIComponent(first.id)}&qty=${first.promo.buy}`;
+    promoTile.querySelector(".tile__title").textContent = promoDrinks.map((drink) => drinkName(drink)).join(" · ");
+    const isSeed = MENU_SEED.some((drink) => drink.id === first.id);
+    const photo = new URL(isSeed ? `images/menu/${first.id}-top.jpg` : first.sidePhoto || first.photo, document.baseURI).href;
+    promoTile.style.setProperty("--photo", `url("${photo}")`);
   }
 }
 

@@ -9,6 +9,7 @@ function drinkText(drink) {
   return `
     <span class="menu-drink__text">
       ${isSoldOut(drink) ? `<span class="menu-drink__tag menu-drink__tag--out">${t("dw.soldOut")}</span>` : ""}
+      ${drink.id === getSettings().home.seasonalDrink ? `<span class="menu-drink__tag">${t("menu.seasonal")}</span>` : ""}
       ${drink.tag ? `<span class="menu-drink__tag">${tr(drink.tag)}</span>` : ""}
       <span class="menu-drink__name"></span>
       <span class="menu-drink__vi"></span>
@@ -57,8 +58,8 @@ function renderMenu() {
 }
 
 renderMenu();
-// Fresh menu from the server (prices, sold out, hidden drinks); draw again when it arrives
-syncMenu("/api/menu").then((ok) => { if (ok) renderMenu(); });
+// Fresh menu and the seasonal choice from the server; draw again when they arrive
+Promise.all([syncMenu("/api/menu"), syncHome()]).then(() => renderMenu());
 
 // menu.html?drink=egg-coffee opens that drink right away (used by the home page tiles),
 // and &qty=2 starts it at that quantity (used by the promo tile)

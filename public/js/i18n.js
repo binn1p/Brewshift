@@ -88,6 +88,7 @@ const STRINGS = {
   "cart.checkError": { en: "Please check your name, phone and bag, then try again.", fr: "Vérifiez votre nom, votre téléphone et votre sac, puis réessayez." },
   "cart.serverDown": { en: "We couldn't reach the shop's server. Your bag is still saved, so please try again.", fr: "Impossible de joindre le serveur de la boutique. Votre sac est conservé, réessayez." },
   "cart.paymentSoon": { en: "Show this code at the counter and pay there.", fr: "Montrez ce code au comptoir et payez sur place." },
+  "menu.seasonal": { en: "Seasonal", fr: "De saison" },
   "dw.soldOut": { en: "Sold out", fr: "Épuisé" },
   "cart.edit": { en: "Edit", fr: "Modifier" },
   "cart.editLabel": { en: "Edit {name}", fr: "Modifier {name}" },

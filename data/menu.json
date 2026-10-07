@@ -85,10 +85,6 @@
     },
     "viName": "Cà phê trứng",
     "price": 8,
-    "tag": {
-      "en": "Fall special",
-      "fr": "Spécial d'automne"
-    },
     "recipe": {
       "milk": "condensed",
       "sugar": 100,

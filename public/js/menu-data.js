@@ -48,7 +48,6 @@ const MENU_SEED = [
     name: { en: "Egg Coffee", fr: "Café aux œufs" },
     viName: "Cà phê trứng",
     price: 8,
-    tag: { en: "Fall special", fr: "Spécial d'automne" },
     recipe: { milk: "condensed", sugar: 100, ice: null },
     spot: { x: 56, y: 2, w: 10, label: "right" },
     ingredients: {
