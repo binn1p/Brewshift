@@ -82,7 +82,10 @@ Result column: write **Pass**, **Fail** (with what you saw), or **Skip** (with w
 | ID | Steps | Expected |
 |---|---|---|
 | Q-1 | From the choice page, press **Orders** | Open orders, oldest first |
-| Q-2 | On an order, press **Start**, then **Ready**, then **Finish** | Each step changes the status; the finished order leaves the list |
+| Q-2 | On a counter order (already paid), press **Start**, then **Ready**, then **Finish** | Each step changes the status right away; the finished order leaves the list |
+| Q-2a | On an online order placed from C-9 (pay at pickup), press Start, then Ready, then **Finish** | A dialog asks to collect payment: choose Cash, type an amount, see the change, confirm — order finishes |
+| Q-2b | Same, but choose **Card** | No amount asked; order finishes right away |
+| Q-2c | Choose Cash with too little money, try to confirm | Blocked, shows how much is missing |
 | Q-3 | Open the same queue in two tabs; finish an order in one | In the other, the next press shows that the order already changed |
 | Q-4 | Press **Take an order** from the choice page | The counter page opens with the menu |
 | Q-5 | Add drinks, enter the customer name, choose **Cash** | The total with taxes shows; the cash keypad appears |
