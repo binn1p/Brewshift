@@ -6,6 +6,11 @@ const managerId = sessionStorage.getItem(SESSION_KEY);
 const manager = managerId ? getUser(managerId) : null;
 if (!isManager(manager)) window.location.replace("kiosk.html");
 
+// The server forgets sessions when it restarts or redeploys: ask it, and go back to the kiosk if it does not know us
+api("GET", "/api/auth/me").then((result) => {
+  if (!result.ok) window.location.replace("kiosk.html");
+});
+
 function leaveDashboard() {
   sessionStorage.removeItem(SESSION_KEY);
   window.location.href = "kiosk.html";

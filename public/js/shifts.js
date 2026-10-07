@@ -24,8 +24,9 @@ function slotTimes(dayNumber, slot) {
   return slot === "morning" ? [open, SPLIT] : [SPLIT, close];
 }
 
+// Shifts are planned for staff only (the server rejects the owner)
 function activeStaff() {
-  return getUsers().filter((u) => u.status === "approved");
+  return getUsers().filter((u) => u.status === "approved" && u.role === "staff");
 }
 
 function weekShifts() {
@@ -93,6 +94,20 @@ function showRoster() {
 
 // ---------- Week grid (right) ----------
 
+// Explains a failed change: an expired session goes back to the kiosk, anything else says why
+function shiftError(result) {
+  if (result.status === 401) {
+    window.location.replace("kiosk.html");
+    return;
+  }
+  if (result.status === 0) {
+    alert(t("kiosk.offline"));
+    return;
+  }
+  const fields = result.data?.fields ? Object.values(result.data.fields) : [];
+  alert(fields[0] || result.data?.error || t("cart.checkError"));
+}
+
 async function assign(userId, dayKey, slot) {
   const user = getUser(userId);
   const dayNumber = atTime(dayKey, "12:00").getDay();
@@ -109,7 +124,7 @@ async function assign(userId, dayKey, slot) {
 
   const result = await api("POST", "/api/admin/shifts", { userId, date: dayKey, start, end });
   if (!result.ok) {
-    alert(t("kiosk.offline"));
+    shiftError(result);
     return;
   }
   await syncShifts();
@@ -206,7 +221,7 @@ function editShift(shift) {
     if (f.end.value <= f.start.value) return;
     const result = await api("PUT", `/api/admin/shifts/${shift.id}`, { userId: shift.userId, date: shift.date, start: f.start.value, end: f.end.value });
     if (!result.ok) {
-      alert(t("kiosk.offline"));
+      shiftError(result);
       return;
     }
     await syncShifts();
