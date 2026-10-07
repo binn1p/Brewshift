@@ -43,7 +43,7 @@ Client-server web app.
 | `docs/` | Text documents (spec, journal) |
 | root | `README.md`, `.gitignore`, `.env.example`, `package.json` |
 
-Hosting: **Render**.
+Hosting: **Render**, live at https://brewshift.onrender.com (build `npm install`, start `npm start`, env vars set in the Render dashboard; `DATA_DIR` only with a disk).
 
 ## Branding (minh)
 
