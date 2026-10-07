@@ -371,6 +371,7 @@ function posCheckoutHTML(subtotal) {
         <legend>${t("pos.payment")} <span class="pickup__required" aria-hidden="true">*</span></legend>
         <label class="pay__choice"><input type="radio" name="payment" value="cash" required><span>${t("payment.cash")}</span></label>
         <label class="pay__choice"><input type="radio" name="payment" value="card"><span>${t("payment.card")}</span></label>
+        <label class="pay__choice"><input type="radio" name="payment" value="qr"><span>${t("pos.payQr")}</span></label>
       </fieldset>
       <div class="cash" hidden>
         <div class="cash__screen">
@@ -493,12 +494,92 @@ function setupPosCheckout(body, itemsSubtotal) {
     printBill(readCart(), checkout.elements.pickup.value.trim(), discount());
   });
 
+  // Shows the same "order sent" screen, however the order was paid
+  function showPosSuccess(order) {
+    cartWindow.querySelector(".cart-window__body").innerHTML = `
+      <div class="order-done">
+        <p class="order-done__thanks"></p>
+        <p class="order-done__label">${t("cart.code")}</p>
+        <p class="order-done__code"></p>
+        <p class="order-done__change"></p>
+        <div class="pay__buttons">
+          <button type="button" class="button button--light" data-receipt>${t("pos.printReceipt")}</button>
+          <button type="button" class="button" data-new>${t("pos.newOrder")}</button>
+        </div>
+      </div>`;
+    cartWindow.querySelector(".order-done__code").textContent = order.code;
+    cartWindow.querySelector(".order-done__thanks").textContent = t("pos.sent", { name: order.customerName, payment: t(`payment.${order.payment}`) });
+    cartWindow.querySelector(".order-done__change").textContent = order.change !== null ? t("pos.change", { amount: money(order.change) }) : "";
+    cartWindow.querySelector("[data-receipt]").addEventListener("click", () => printReceipt(findOrder(order.id)));
+    cartWindow.querySelector("[data-new]").addEventListener("click", () => cartWindow.close());
+  }
+
+  // Pay by QR code: the customer scans it with their own phone and pays through Stripe.
+  // This screen just waits and checks every 3 seconds; nothing is sent until they pay.
+  async function payByQr(bag, customerName) {
+    const send = checkout.querySelector("[type=submit]");
+    const started = await api("POST", "/api/payments/checkout-session/counter", {
+      customerName,
+      items: bag.map((line) => ({ id: line.id, quantity: line.qty, options: line.options })),
+    });
+    if (!started.ok) {
+      send.disabled = false;
+      const note = document.createElement("p");
+      note.className = "admin__error";
+      note.textContent = started.status === 503 ? t("cart.payNotReady") : t("cart.checkError");
+      totalBox.append(note);
+      return;
+    }
+
+    let waiting = true;
+    cartWindow.querySelector(".cart-window__body").innerHTML = `
+      <div class="order-done">
+        <p class="order-done__thanks">${t("pos.qrTitle")}</p>
+        <img class="qr-code" alt="${t("pos.qrTitle")}" src="${started.data.qr}">
+        <p>${t("pos.qrWaiting")}</p>
+        <p class="admin__hint">${t("pos.qrLink")}<br><a href="${started.data.url}" target="_blank" rel="noopener">${started.data.url}</a></p>
+        <button type="button" class="button button--light" data-cancel-qr>${t("admin.cancel")}</button>
+      </div>`;
+    cartWindow.querySelector("[data-cancel-qr]").addEventListener("click", () => {
+      waiting = false;
+      cartWindow.close();
+    });
+
+    while (waiting) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      if (!waiting) return;
+      const result = await api("GET", `/api/payments/confirm/${started.data.sessionId}`);
+      if (result.ok) {
+        waiting = false;
+        const order = mirrorCounterSale(result.data.code, bag, {
+          customerName,
+          phone: "",
+          customerId: null,
+          takenBy: sessionStorage.getItem(SESSION_KEY),
+          payment: "card",
+          cashReceived: null,
+          change: null,
+        });
+        localStorage.removeItem(CART_KEY);
+        renderCart();
+        showPosSuccess(order);
+      }
+      // Any other status (still 402, or a blip) just means "keep waiting"
+    }
+  }
+
   checkout.addEventListener("submit", async (event) => {
     event.preventDefault();
     const pickup = checkout.elements.pickup;
     if (!pickup.value.trim()) pickup.value = "";
     showCash();
     if (!checkout.reportValidity()) return;
+
+    if (checkout.elements.payment.value === "qr") {
+      checkout.querySelector("[type=submit]").disabled = true;
+      await payByQr(readCart(), pickup.value.trim());
+      return;
+    }
 
     // The server takes the points, works out the total and the change, and saves the sale
     const isCash = checkout.elements.payment.value === "cash";
@@ -535,22 +616,7 @@ function setupPosCheckout(body, itemsSubtotal) {
     });
     localStorage.removeItem(CART_KEY);
     renderCart();
-    cartWindow.querySelector(".cart-window__body").innerHTML = `
-      <div class="order-done">
-        <p class="order-done__thanks"></p>
-        <p class="order-done__label">${t("cart.code")}</p>
-        <p class="order-done__code"></p>
-        <p class="order-done__change"></p>
-        <div class="pay__buttons">
-          <button type="button" class="button button--light" data-receipt>${t("pos.printReceipt")}</button>
-          <button type="button" class="button" data-new>${t("pos.newOrder")}</button>
-        </div>
-      </div>`;
-    cartWindow.querySelector(".order-done__code").textContent = order.code;
-    cartWindow.querySelector(".order-done__thanks").textContent = t("pos.sent", { name: order.customerName, payment: t(`payment.${order.payment}`) });
-    cartWindow.querySelector(".order-done__change").textContent = order.change !== null ? t("pos.change", { amount: money(order.change) }) : "";
-    cartWindow.querySelector("[data-receipt]").addEventListener("click", () => printReceipt(findOrder(order.id)));
-    cartWindow.querySelector("[data-new]").addEventListener("click", () => cartWindow.close());
+    showPosSuccess(order);
   });
 }
 

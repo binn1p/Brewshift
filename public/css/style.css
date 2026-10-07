@@ -1858,6 +1858,18 @@ body {
   letter-spacing: 0.15em;
 }
 
+/* A Stripe payment QR code, shown at the counter while waiting for the customer's phone */
+.qr-code {
+  display: block;
+  width: 220px;
+  height: 220px;
+  margin: 12px auto;
+  border: 3px solid var(--color-espresso);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+}
+
 /* ---------- Manager pages: shared ---------- */
 
 .clock-chip {
