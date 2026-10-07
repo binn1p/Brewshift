@@ -4,7 +4,7 @@
 const express = require("express");
 const { readJson, writeJson, exclusive } = require("../lib/storage");
 const { publicUser, readUsers } = require("../lib/users");
-const { weekHours } = require("../lib/punches");
+const { weekHours, currentState, nextType, newPunch } = require("../lib/punches");
 const { toCsv } = require("../lib/csv");
 const { checkDrink, slugify } = require("../lib/menu");
 const { saveImage, uploadsDir } = require("../lib/uploads");
@@ -395,6 +395,49 @@ function adminRouter(shop) {
       // Remove the file too, if it is one of ours
       await fs.unlink(path.join(uploadsDir(), path.basename(result.photo.url))).catch(() => {});
       res.json({ ok: true });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Who is clocked in right now, since when, and this week's hours (owner)
+  router.get("/attendance", async (req, res, next) => {
+    try {
+      const people = (await readUsers()).filter((u) => u.role === "staff" && u.status === "approved");
+      const punches = await readJson("punches", []);
+      const now = new Date();
+      res.json(people.map((person) => {
+        const mine = punches.filter((p) => p.userId === person.id).sort((a, b) => a.at.localeCompare(b.at));
+        const state = currentState(mine);
+        const lastIn = mine.filter((p) => p.type === "in").at(-1);
+        return {
+          id: person.id,
+          name: person.name,
+          state,
+          since: state === "in" && lastIn ? lastIn.at : null,
+          weekHours: weekHours(mine, now, shop.timeZone),
+        };
+      }));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Clock a staff member in or out, for someone who forgot (owner). The time is the server's.
+  router.post("/staff/:id/punch", async (req, res, next) => {
+    try {
+      const result = await exclusive(async () => {
+        const person = (await readUsers()).find((u) => u.id === req.params.id && u.role === "staff" && u.status === "approved");
+        if (!person) return { error: 404, message: "No approved staff member with that id." };
+        const all = await readJson("punches", []);
+        const mine = all.filter((p) => p.userId === person.id);
+        const punch = { ...newPunch(person.id, nextType(mine), new Date()), enteredBy: req.user.id };
+        all.push(punch);
+        await writeJson("punches", all);
+        return { punch, state: currentState([...mine, punch]) };
+      });
+      if (result.error) return res.status(result.error).json({ error: result.message });
+      res.status(201).json(result);
     } catch (error) {
       next(error);
     }

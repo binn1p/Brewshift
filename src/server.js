@@ -4,6 +4,8 @@
 require("dotenv").config();
 const { loadShop } = require("./lib/shop");
 const { ensureOwner } = require("./lib/users");
+const { dropOldSeasonalTag } = require("./lib/menu");
+const { readJson, writeJson } = require("./lib/storage");
 const { createApp } = require("./app");
 const fs = require("fs/promises");
 const path = require("path");
@@ -29,6 +31,7 @@ const shop = loadShop();
 
 // Create the owner account from .env if it does not exist yet (FR-25)
 seedMenuIfMissing()
+  .then(() => dropOldSeasonalTag({ readJson, writeJson }))
   .then(() => ensureOwner({
   email: process.env.OWNER_EMAIL,
   password: process.env.OWNER_PASSWORD,

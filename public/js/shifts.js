@@ -318,6 +318,39 @@ document.getElementById("text").addEventListener("click", () => {
   editor.showModal();
 });
 
+// Who is clocked in now (from the server's clock), with a button to clock someone in or out
+async function showAttendance() {
+  const box = document.getElementById("attendance");
+  const result = await api("GET", "/api/admin/attendance");
+  if (!result.ok) return;
+  box.innerHTML = `<h2>${t("att.title")}</h2><ul class="attendance__list"></ul>`;
+  const list = box.querySelector("ul");
+  if (!result.data.length) list.innerHTML = `<li class="admin__hint">${t("att.none")}</li>`;
+  result.data.forEach((person) => {
+    const li = document.createElement("li");
+    li.className = `attendance__row attendance__row--${person.state}`;
+    const status = person.state === "in" ? t("att.in", { time: clockTime(new Date(person.since)) }) : t("att.out");
+    li.innerHTML = `<strong></strong><span class="attendance__status"></span><span class="attendance__week"></span><button type="button" class="button button--small"></button>`;
+    li.querySelector("strong").textContent = person.name;
+    li.querySelector(".attendance__status").textContent = status;
+    li.querySelector(".attendance__week").textContent = t("att.week", { hours: hoursText(person.weekHours * 60) });
+    const button = li.querySelector("button");
+    button.textContent = t(person.state === "in" ? "att.clockOut" : "att.clockIn");
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      const punch = await api("POST", `/api/admin/staff/${person.id}/punch`);
+      if (!punch.ok) {
+        shiftError(punch);
+        return;
+      }
+      showAttendance();
+    });
+    list.append(li);
+  });
+}
+
 if (isManager(manager)) {
   Promise.all([syncStaff(), syncShifts()]).then(refresh);
+  showAttendance();
+  setInterval(showAttendance, 15000);
 }

@@ -268,3 +268,16 @@ test("shop settings: anyone can read them, the owner saves them, bad values are 
   const denied = await call("PUT", "/api/admin/settings", { cookie: staff.cookie, body });
   assert.equal(denied.status, 403);
 });
+
+test("the old Fall special label on Egg Coffee is removed once, and nothing else changes", async () => {
+  const { dropOldSeasonalTag } = require("../src/lib/menu");
+  const { readJson, writeJson } = require("../src/lib/storage");
+  const menu = await readJson("menu");
+  menu.find((d) => d.id === "egg-coffee").tag = { en: "Fall special", fr: "Spécial d'automne" };
+  await writeJson("menu", menu);
+  assert.equal(await dropOldSeasonalTag({ readJson, writeJson }), true);
+  const after = await readJson("menu");
+  assert.equal(after.find((d) => d.id === "egg-coffee").tag, undefined);
+  assert.equal(after.find((d) => d.id === "hot-black-coffee").price, 6);
+  assert.equal(await dropOldSeasonalTag({ readJson, writeJson }), false);
+});

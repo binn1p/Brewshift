@@ -90,4 +90,15 @@ function slugify(text) {
   return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-module.exports = { checkDrink, slugify, MILKS };
+// One-time fix on start: the old "Fall special" label on Egg Coffee is removed. The seasonal
+// label now comes from Settings. Safe to run again: it does nothing once the label is gone.
+async function dropOldSeasonalTag({ readJson, writeJson }) {
+  const menu = await readJson("menu");
+  const egg = menu.find((drink) => drink.id === "egg-coffee");
+  if (!egg || !egg.tag || egg.tag.en !== "Fall special") return false;
+  delete egg.tag;
+  await writeJson("menu", menu);
+  return true;
+}
+
+module.exports = { checkDrink, slugify, MILKS, dropOldSeasonalTag };
