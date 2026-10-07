@@ -138,7 +138,12 @@ function welcome(user, state) {
 
   sessionStorage.setItem(SESSION_KEY, user.id);
   // Next: choose clock in/out, a counter order, or (managers) the dashboard
-  setTimeout(() => { window.location.href = "hub.html"; }, 1800);
+  setTimeout(() => {
+    // A new-order banner may have asked to go straight to the order queue
+    const next = sessionStorage.getItem("brewshift-after-login");
+    sessionStorage.removeItem("brewshift-after-login");
+    window.location.href = next || "hub.html";
+  }, 1800);
 }
 
 // ---------- Weird question of the day ----------

@@ -102,6 +102,7 @@ async function startQueue() {
     window.location.replace("kiosk.html");
     return;
   }
+  markOrdersSeen();
   await loadQueue();
   // New orders show up by themselves
   setInterval(loadQueue, 15000);

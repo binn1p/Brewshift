@@ -426,12 +426,18 @@ function adminRouter(shop) {
   // Clock a staff member in or out, for someone who forgot (owner). The time is the server's.
   router.post("/staff/:id/punch", async (req, res, next) => {
     try {
+      let at = new Date();
+      if (req.body?.at !== undefined) {
+        at = new Date(req.body.at);
+        if (Number.isNaN(at.getTime())) return res.status(400).json({ error: "That is not a valid time." });
+        if (at.getTime() > Date.now() + 60000) return res.status(400).json({ error: "The time cannot be in the future." });
+      }
       const result = await exclusive(async () => {
         const person = (await readUsers()).find((u) => u.id === req.params.id && u.role === "staff" && u.status === "approved");
         if (!person) return { error: 404, message: "No approved staff member with that id." };
         const all = await readJson("punches", []);
         const mine = all.filter((p) => p.userId === person.id);
-        const punch = { ...newPunch(person.id, nextType(mine), new Date()), enteredBy: req.user.id };
+        const punch = { ...newPunch(person.id, nextType(mine), at), enteredBy: req.user.id };
         all.push(punch);
         await writeJson("punches", all);
         return { punch, state: currentState([...mine, punch]) };

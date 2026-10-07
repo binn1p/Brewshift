@@ -95,3 +95,28 @@ test("staff cannot see the attendance list or clock others (403)", async () => {
   assert.equal((await call("GET", "/api/admin/attendance", { cookie: person.cookie })).status, 403);
   assert.equal((await call("POST", `/api/admin/staff/${person.id}/punch`, { cookie: person.cookie })).status, 403);
 });
+
+test("the owner can clock someone in at a chosen time, not just now", async () => {
+  const person = await staff("910005");
+  const owner = await ownerCookie();
+  const chosen = new Date(Date.now() - 2 * 3600000).toISOString(); // 2 hours ago
+  const result = await call("POST", `/api/admin/staff/${person.id}/punch`, { cookie: owner, body: { at: chosen } });
+  assert.equal(result.status, 201);
+  assert.equal(result.data.punch.at, chosen);
+});
+
+test("a chosen time in the future is refused", async () => {
+  const person = await staff("910006");
+  const owner = await ownerCookie();
+  const future = new Date(Date.now() + 3600000).toISOString();
+  const { status, data } = await call("POST", `/api/admin/staff/${person.id}/punch`, { cookie: owner, body: { at: future } });
+  assert.equal(status, 400);
+  assert.match(data.error, /future/);
+});
+
+test("a bad time value is refused", async () => {
+  const person = await staff("910007");
+  const owner = await ownerCookie();
+  const { status } = await call("POST", `/api/admin/staff/${person.id}/punch`, { cookie: owner, body: { at: "not-a-time" } });
+  assert.equal(status, 400);
+});

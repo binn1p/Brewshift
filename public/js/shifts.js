@@ -330,17 +330,22 @@ async function showAttendance() {
     const li = document.createElement("li");
     li.className = `attendance__row attendance__row--${person.state}`;
     const status = person.state === "in" ? t("att.in", { time: clockTime(new Date(person.since)) }) : t("att.out");
-    li.innerHTML = `<strong></strong><span class="attendance__status"></span><span class="attendance__week"></span><button type="button" class="button button--small"></button>`;
+    li.innerHTML = `<strong></strong><span class="attendance__status"></span><span class="attendance__week"></span><input type="time" class="attendance__time" aria-label="${t("att.time")}"><button type="button" class="button button--small"></button>`;
     li.querySelector("strong").textContent = person.name;
     li.querySelector(".attendance__status").textContent = status;
     li.querySelector(".attendance__week").textContent = t("att.week", { hours: hoursText(person.weekHours * 60) });
+    const time = li.querySelector(".attendance__time");
+    time.value = clockTime(new Date());
     const button = li.querySelector("button");
     button.textContent = t(person.state === "in" ? "att.clockOut" : "att.clockIn");
     button.addEventListener("click", async () => {
       button.disabled = true;
-      const punch = await api("POST", `/api/admin/staff/${person.id}/punch`);
+      // The chosen time is today, in this browser; the server still refuses a future time
+      const at = new Date(`${dateKey(new Date())}T${time.value || clockTime(new Date())}:00`).toISOString();
+      const punch = await api("POST", `/api/admin/staff/${person.id}/punch`, { at });
       if (!punch.ok) {
         shiftError(punch);
+        button.disabled = false;
         return;
       }
       showAttendance();

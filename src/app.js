@@ -87,6 +87,20 @@ function createApp(shop) {
     }
   });
 
+  // New orders since a given time (shop screens poll this to show a banner). No private details.
+  app.get("/api/queue/alert", async (req, res, next) => {
+    try {
+      const since = typeof req.query.since === "string" ? new Date(req.query.since) : null;
+      if (!since || Number.isNaN(since.getTime())) return res.json({ count: 0, latestAt: null });
+      const orders = await readJson("orders", []);
+      const fresh = orders.filter((o) => new Date(o.createdAt) > since);
+      const latestAt = fresh.reduce((latest, o) => (!latest || o.createdAt > latest ? o.createdAt : latest), null);
+      res.json({ count: fresh.length, latestAt });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.use("/api/orders", ordersRouter(shop));
   app.use("/api/customers", customersRouter());
   app.use("/api/auth", authRouter());
