@@ -33,6 +33,10 @@ function queueRouter(shop) {
           status: o.status,
           pickupTime: o.pickupTime,
           createdAt: o.createdAt,
+          // An online order that chose "pay at pickup" has no payment yet; the counter
+          // must collect it before the order can be marked picked up
+          payment: o.payment || null,
+          totalCents: o.totalCents,
         }));
       res.json(open);
     } catch (error) {
@@ -63,6 +67,28 @@ function queueRouter(shop) {
         if (NEXT[order.status] !== wanted) {
           return { error: 409, message: `An order that is ${order.status} cannot become ${wanted}.` };
         }
+
+        // An online order that chose "pay at pickup" has no payment yet: it must be collected
+        // (cash or card) before the order can be marked picked up. Counter orders and online
+        // orders already paid by card (Stripe) skip this, since order.payment is already set.
+        if (wanted === "picked_up" && !order.payment) {
+          const payment = req.body?.payment;
+          if (payment !== "cash" && payment !== "card") {
+            return { error: 400, message: "This order has not been paid yet. Choose cash or card.", needsPayment: true, totalCents: order.totalCents };
+          }
+          if (payment === "cash") {
+            const cents = Math.round(Number(req.body.cashReceived) * 100);
+            if (!Number.isFinite(cents) || cents < 0) return { error: 400, message: "Enter the cash received." };
+            if (cents < order.totalCents) return { error: 400, message: "Not enough cash for this bill." };
+            order.cashReceived = cents / 100;
+            order.change = (cents - order.totalCents) / 100;
+          } else {
+            order.cashReceived = null;
+            order.change = null;
+          }
+          order.payment = payment;
+        }
+
         order.history = order.history || [];
         order.history.push({ at: new Date().toISOString(), by: req.user.id, action: "status", before: { status: order.status }, after: { status: wanted } });
         order.status = wanted;
@@ -80,8 +106,13 @@ function queueRouter(shop) {
         await writeJson("orders", orders);
         return { order };
       });
-      if (result.error) return res.status(result.error).json({ error: result.message });
-      res.json({ code: result.order.code, status: result.order.status });
+      if (result.error) {
+        return res.status(result.error).json({
+          error: result.message,
+          ...(result.needsPayment ? { needsPayment: true, totalCents: result.totalCents } : {}),
+        });
+      }
+      res.json({ code: result.order.code, status: result.order.status, change: result.order.change ?? null });
     } catch (error) {
       next(error);
     }

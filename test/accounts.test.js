@@ -144,7 +144,8 @@ test("an online order by a signed-in member earns points at pickup", async () =>
   const staff = await staffCookie();
   await call("POST", `/api/queue/${placed.data.code}/status`, { cookie: staff, body: { status: "in_progress" } });
   await call("POST", `/api/queue/${placed.data.code}/status`, { cookie: staff, body: { status: "ready" } });
-  await call("POST", `/api/queue/${placed.data.code}/status`, { cookie: staff, body: { status: "picked_up" } });
+  // Online orders are "pay at pickup" by default: collected here, like at the counter
+  await call("POST", `/api/queue/${placed.data.code}/status`, { cookie: staff, body: { status: "picked_up", payment: "card" } });
 
   const found = await call("GET", `/api/customers/lookup?phone=${member.phone}`, { cookie: staff });
   assert.equal(found.data.points, 2);
@@ -162,9 +163,11 @@ test("at the counter, points come off the bill before tax", async () => {
     body: { name: "Member", phone: member.phone, items: [{ id: "hot-black-coffee", quantity: 2 }] },
   });
   const staff = await staffCookie();
-  for (const status of ["in_progress", "ready", "picked_up"]) {
+  for (const status of ["in_progress", "ready"]) {
     await call("POST", `/api/queue/${placed.data.code}/status`, { cookie: staff, body: { status } });
   }
+  // Online order, pay at pickup: collected here
+  await call("POST", `/api/queue/${placed.data.code}/status`, { cookie: staff, body: { status: "picked_up", payment: "card" } });
 
   // Now a $6 coffee at the counter: 2 points = $2 off before tax
   // subtotal 600 - 200 = 400; GST 20; QST 40 (9.975% of 400 = 39.9 → 40); total 460

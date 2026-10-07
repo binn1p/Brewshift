@@ -99,17 +99,63 @@ test("the queue lists open orders, oldest first, and needs a staff login", async
   assert.ok(data.every((o) => o.phone === undefined));
 });
 
-test("staff move an order received → in progress → ready → picked up", async () => {
+test("staff move an order received → in progress → ready → picked up, paying cash at pickup", async () => {
   const staff = await staffMember();
   const code = await placeOrder("Walker");
-  const steps = ["in_progress", "ready", "picked_up"];
-  for (const status of steps) {
+  for (const status of ["in_progress", "ready"]) {
     const { status: code200, data } = await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status } });
     assert.equal(code200, 200);
     assert.equal(data.status, status);
   }
-  const after = await call("GET", `/api/orders/${code}`);
-  assert.equal(after.data.status, "picked_up");
+  // Online orders are "pay at pickup" by default: finishing needs the payment collected first
+  const needsPay = await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status: "picked_up" } });
+  assert.equal(needsPay.status, 400);
+  assert.equal(needsPay.data.needsPayment, true);
+  assert.equal(needsPay.data.totalCents, 690);
+
+  const paid = await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status: "picked_up", payment: "cash", cashReceived: 10 } });
+  assert.equal(paid.status, 200);
+  assert.equal(paid.data.status, "picked_up");
+  assert.equal(paid.data.change, 3.1);
+
+  const after = await call("GET", "/api/admin/orders", { cookie: await ownerCookie() });
+  const saved = after.data.find((o) => o.code === code);
+  assert.equal(saved.payment, "cash");
+  assert.equal(saved.cashReceived, 10);
+});
+
+test("finishing an order paid by card at pickup needs no cash amount", async () => {
+  const staff = await staffMember();
+  const code = await placeOrder("Card Pickup");
+  for (const status of ["in_progress", "ready"]) {
+    await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status } });
+  }
+  const paid = await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status: "picked_up", payment: "card" } });
+  assert.equal(paid.status, 200);
+  assert.equal(paid.data.change, null);
+});
+
+test("cash that does not cover the bill is refused when finishing an order", async () => {
+  const staff = await staffMember();
+  const code = await placeOrder("Short Cash");
+  for (const status of ["in_progress", "ready"]) {
+    await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status } });
+  }
+  const { status, data } = await call("POST", `/api/queue/${code}/status`, { cookie: staff.cookie, body: { status: "picked_up", payment: "cash", cashReceived: 1 } });
+  assert.equal(status, 400);
+  assert.match(data.error, /Not enough/);
+});
+
+test("a counter order (already paid when sent) finishes without being asked for payment again", async () => {
+  const staff = await staffMember();
+  const sent = await call("POST", "/api/orders/counter", {
+    cookie: staff.cookie,
+    body: { customerName: "Counter Walker", payment: "card", items: [{ id: "hot-black-coffee", quantity: 1 }] },
+  });
+  for (const status of ["in_progress", "ready", "picked_up"]) {
+    const { status: code200 } = await call("POST", `/api/queue/${sent.data.code}/status`, { cookie: staff.cookie, body: { status } });
+    assert.equal(code200, 200);
+  }
 });
 
 test("skipping a step is refused (409)", async () => {
