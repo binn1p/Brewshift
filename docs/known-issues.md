@@ -2,15 +2,13 @@
 
 ## Open
 
-1. **The seasonal tag on the menu is stuck on Egg Coffee.**
-   - What works: changing the seasonal drink in Settings changes the home page tile (photo, link, name).
-   - What does not: on the menu page, the seasonal tag stays on Egg Coffee. The tag comes from the drink's own label in the menu data ('Fall special' on egg coffee), not from the Settings choice.
-   - Expected: the seasonal tag appears on the drink chosen in Settings, and moves when the choice changes.
-   - Likely fix: show the seasonal tag on the menu page from the Settings choice (`home.seasonalDrink`), instead of the drink's own label.
-
+1. **Online card payment (Stripe) has no webhook yet.**
+   - The order is only saved when the customer's browser comes back to `order-paid.html` and calls `GET /api/payments/confirm/:sessionId`. If Stripe charges the card but the browser never returns (closed tab, crash, lost connection), the payment goes through on Stripe's side but no order is ever saved.
+   - Fix: add a Stripe webhook (`checkout.session.completed`) that saves the order server-side too, using the same "already have this `stripeSessionId`?" check so it can't create a duplicate.
+   - Render's free plan also still loses all data (including paid orders) on redeploy without a persistent disk — see the README.
 
 ## Fixed
 
 - Seasonal label on the menu follows the Settings choice (commit 4d10e9e).
-- Egg Coffee's old "Fall special" label is removed automatically on the next start (one-time fix in `src/lib/menu.js`). Pending code commit.
+- Egg Coffee's old "Fall special" label is removed automatically on the next start (commit 6967cc7).
 

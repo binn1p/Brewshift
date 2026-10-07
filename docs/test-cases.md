@@ -40,6 +40,12 @@ Result column: write **Pass**, **Fail** (with what you saw), or **Skip** (with w
 | C-10 | Look at the confirmation | "Status: received" appears |
 | C-11 | Keep the confirmation open for 15 seconds, then change the status (see M-3) | The status updates on its own |
 | C-12 | Pick a pickup time in the past | Message: pickup time must be at least 5 minutes from now |
+| C-13 | At checkout, choose **Pay online now (card)**, press Checkout (needs `STRIPE_SECRET_KEY` set on the server) | Goes to Stripe's own payment page |
+| C-14 | On Stripe's test page, use test card `4242 4242 4242 4242`, any future expiry, any CVC | Payment succeeds, returns to `order-paid.html` with an order code and live status |
+| C-15 | On Stripe's test page, use test card `4000 0000 0000 0002` (always declined) | Stripe shows the decline; no order is created |
+| C-16 | On the Stripe page, press Back or close the tab instead of paying | Back on `menu.html`; the bag still has the items; no order was created |
+| C-17 | Reload `order-paid.html` after a successful payment (same `session_id` in the address bar) | Same order code shown again; `docs/known-issues.md`'s note on this: it is not saved twice |
+| C-18 | Without `STRIPE_SECRET_KEY` set, choose **Pay online now** | Message that online payment isn't available; pay at pickup still works |
 
 ## 4. Customer: order tracking and accounts
 

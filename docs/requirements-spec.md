@@ -23,6 +23,7 @@
 | 1.6 | 2026-10-04 | binn1p | Vietnamese (VI) added to the kiosk, staff page and all manager pages; kiosk questions editable in Settings. |
 | 1.7 | 2026-10-04 | binn1p | FR-45 built as a front end: after the PIN, a start page offers clock in/out, counter orders and (managers) the dashboard. Counter orders record who took them and cash/card payment; bill and receipt printing (browser print as a stand-in). Only managers edit or delete sent orders, and every change is kept in the order log. Refunds and card processing (Stripe) remain out of scope for now. |
 | 1.8 | 2026-10-04 | binn1p | Cash keypad with change at the counter; current-orders board for all staff (Start → Ready → Finish, sorted by pickup time or arrival); optional pickup time on online orders; optional member accounts with points (earn per drink, spend at the counter, values set in Settings), account page with live order status and history. |
+| 1.9 | 2026-10-07 | binn1p | Added FR-19a: customers may optionally pay online by card (Stripe Checkout, test mode) instead of at pickup. Payment at the counter remains the default and does not require this. A-1 and the "Online payment" out-of-scope row updated to match; no real charges are processed (test-mode Stripe keys only). |
 
 ---
 
@@ -116,7 +117,7 @@ Brewshift is a standalone client-server web application.
 
 | ID | Assumption |
 |---|---|
-| A-1 | Payment happens in person at pickup; Brewshift does not process payments. |
+| A-1 | Payment happens in person at pickup by default; Brewshift does not store card numbers. Since v1.9, a customer may optionally pay online by card through Stripe Checkout (test mode), which keeps card handling off our server entirely. |
 | A-2 | Each deployment serves exactly one café, so data needs no shop identifier. |
 | A-3 | Staff PINs are unique within a deployment, so a PIN alone identifies the person at the kiosk. |
 | A-4 | Times are stored in UTC and displayed in the café's time zone from `config/shop.json` (America/Toronto for minh). |
@@ -149,6 +150,7 @@ Priority uses MoSCoW. "Week" is the planned delivery week.
 | FR-17 | After a successful order, the customer shall see a confirmation page with the order code, items, total and current status. | Must | 2 |
 | FR-18 | The confirmation page shall refresh the order status automatically (received → in progress → ready). | Must | 4 |
 | FR-19 | The order status page shall show the status and items only, never the customer's phone number. | Must | 2 |
+| FR-19a | The customer could pay online by card at checkout, through Stripe Checkout, instead of paying at pickup. Pay at pickup remains the default and needs no payment service. The server never stores a card number. | Could | 4 |
 
 ### 3.3 Accounts and authentication (staff and owner)
 
@@ -322,7 +324,7 @@ Prices are stored in cents to avoid rounding errors.
 
 | Item | Reason |
 |---|---|
-| Online payment | Payment at the counter; avoids handling card data. |
+| Real online payment | ~~Payment at the counter; avoids handling card data.~~ Optional test-mode Stripe Checkout added in v1.9 (FR-19a). Still out of scope: real (live) charges, refunds, and webhooks for payment reliability. |
 | Several cafés in one deployment | Each café gets its own deployment (A-2). |
 | Chart of orders per hour vs. staff on shift | Replaced by CSV export (FR-57) for external analysis. |
 | Drag-and-drop shift scheduling | Beyond the course scope. |
