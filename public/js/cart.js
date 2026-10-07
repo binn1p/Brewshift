@@ -161,6 +161,11 @@ function onlineCheckoutHTML() {
         <input name="pickupTime" type="time" step="300">
         <small class="admin__hint">${t("cart.pickupHint")}</small>
       </label>
+      <fieldset class="pay">
+        <legend>${t("cart.payWhen")}</legend>
+        <label class="pay__choice"><input type="radio" name="payWhen" value="pickup" checked><span>${t("cart.payAtPickup")}</span></label>
+        <label class="pay__choice"><input type="radio" name="payWhen" value="online"><span>${t("cart.payOnline")}</span></label>
+      </fieldset>
       <button type="submit" class="button">${t("cart.checkout")}</button>
       <p class="cart-window__notice" role="status"></p>
     </form>`;
@@ -190,6 +195,32 @@ async function sendOrder(bag, name, phone, pickupTime) {
   if (response.status === 400) throw new Error(t("cart.checkError"));
   if (!response.ok) throw new Error(t("cart.serverDown"));
   return data;
+}
+
+// Starts an online card payment (Stripe Checkout, test mode). On success, the browser is
+// sent to Stripe's own page, and never handles the card number itself.
+async function payOnline(bag, name, phone, pickupTime) {
+  const body = {
+    name,
+    phone,
+    pickupTime: pickupTime || null,
+    items: bag.map((line) => ({ id: line.id, quantity: line.qty, options: line.options })),
+  };
+  let response;
+  try {
+    response = await fetch("/api/payments/checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(t("cart.serverDown"));
+  }
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 503) throw new Error(t("cart.payNotReady"));
+  if (response.status === 400) throw new Error(t("cart.checkError"));
+  if (!response.ok) throw new Error(t("cart.serverDown"));
+  return data.url;
 }
 
 function setupOnlineCheckout(body) {
@@ -245,6 +276,21 @@ function setupOnlineCheckout(body) {
     if (!checkout.reportValidity()) return;
     const notice = checkout.querySelector(".cart-window__notice");
     notice.textContent = "";
+
+    // Pay online now: hand off to Stripe. The order is only saved once Stripe confirms the
+    // payment (order-paid.html), so the bag is left alone here in case the customer cancels.
+    if (checkout.elements.payWhen.value === "online") {
+      const submit = checkout.querySelector("[type=submit]");
+      submit.disabled = true;
+      try {
+        window.location.href = await payOnline(readCart(), pickup.value.trim(), phone.value, pickupTime.value);
+      } catch (error) {
+        notice.textContent = error.message;
+        submit.disabled = false;
+      }
+      return;
+    }
+
     // The server checks and prices the order. The bag is only emptied once it is saved.
     let saved;
     try {

@@ -15,6 +15,7 @@ const { queueRouter } = require("./routes/queue");
 const { adminRouter } = require("./routes/admin");
 const { uploadsDir } = require("./lib/uploads");
 const { customersRouter } = require("./routes/customers");
+const { paymentsRouter } = require("./routes/payments");
 const { ownerShiftsRouter, myShiftsRouter } = require("./routes/shifts");
 const { requireLogin, requireRole } = require("./middleware/auth");
 
@@ -103,6 +104,7 @@ function createApp(shop) {
 
   app.use("/api/orders", ordersRouter(shop));
   app.use("/api/customers", customersRouter());
+  app.use("/api/payments", paymentsRouter(shop));
   app.use("/api/auth", authRouter());
   app.use("/api/staff", staffRouter());
   app.use("/api/kiosk", kioskRouter());
