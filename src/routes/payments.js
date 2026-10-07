@@ -37,7 +37,8 @@ function paymentsRouter(shop) {
       const origin = `${req.protocol}://${req.get("host")}`;
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
-        payment_method_types: ["card"],
+        // Which payment methods show (card, etc.) is now chosen in the Stripe Dashboard,
+        // not here: https://dashboard.stripe.com/settings/payment_methods
         success_url: `${origin}/order-paid.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/menu.html`,
         metadata: { orderPayload: payload },
