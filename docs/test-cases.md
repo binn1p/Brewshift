@@ -93,6 +93,10 @@ Result column: write **Pass**, **Fail** (with what you saw), or **Skip** (with w
 | Q-10 | Type a member's phone number (of a member from section 4) | Member found, with points; a checkbox to use points |
 | Q-11 | Tick the points box and send | The total is lower; the member's points go down |
 | Q-12 | Press **Today's orders** | The orders of today appear, including the ones you just took |
+| Q-13 | At the counter, add drinks, enter a name, choose **QR code (Stripe)**, press Send order (needs `STRIPE_SECRET_KEY` set) | A QR code and a link appear; the screen says it is waiting |
+| Q-14 | On a phone, scan the QR code, pay with test card `4242 4242 4242 4242` | Within a few seconds, the counter screen shows the order code and receipt options by itself |
+| Q-15 | Start a QR payment, then press **Cancel** before paying | Back to the counter screen with the same bag; no order was created |
+| Q-16 | Check the order log after Q-14 | The order shows source "counter", payment "card", and who took it |
 
 ## 7. Manager: menu, settings and stock
 

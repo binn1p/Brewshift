@@ -24,6 +24,7 @@
 | 1.7 | 2026-10-04 | binn1p | FR-45 built as a front end: after the PIN, a start page offers clock in/out, counter orders and (managers) the dashboard. Counter orders record who took them and cash/card payment; bill and receipt printing (browser print as a stand-in). Only managers edit or delete sent orders, and every change is kept in the order log. Refunds and card processing (Stripe) remain out of scope for now. |
 | 1.8 | 2026-10-04 | binn1p | Cash keypad with change at the counter; current-orders board for all staff (Start → Ready → Finish, sorted by pickup time or arrival); optional pickup time on online orders; optional member accounts with points (earn per drink, spend at the counter, values set in Settings), account page with live order status and history. |
 | 1.9 | 2026-10-07 | binn1p | Added FR-19a: customers may optionally pay online by card (Stripe Checkout, test mode) instead of at pickup. Payment at the counter remains the default and does not require this. A-1 and the "Online payment" out-of-scope row updated to match; no real charges are processed (test-mode Stripe keys only). |
+| 1.10 | 2026-10-07 | binn1p | Added FR-45a: a Stripe QR code as a third counter payment choice (cash, card, or a link the customer's own phone scans and pays). Fixed FR-19a so a card-paid online order is correctly linked to the signed-in member's account. |
 
 ---
 
@@ -183,6 +184,7 @@ Priority uses MoSCoW. "Week" is the planned delivery week.
 | FR-43 | A staff member shall be able to move an order from received to in progress to ready. | Must | 4 |
 | FR-44 | The order queue shall refresh automatically without reloading the page. | Should | 4 |
 | FR-45 | Staff should be able to take a walk-in order at the counter by reusing the menu, drink window and cart on the iPad, entering the customer's name; the order joins the same queue as online orders. To do only after all Must items are done. | Should | 4+ |
+| FR-45a | At the counter, staff could offer a QR code (a Stripe Checkout link) as a third payment choice next to cash and card, for a customer to pay with their own phone instead of a card machine. | Could | 4+ |
 
 ### 3.6 Owner dashboard (login as owner)
 
