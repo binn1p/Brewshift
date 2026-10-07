@@ -87,6 +87,6 @@ tools/         development check page at /dev (not available in production)
 
 ## Deployment
 
-Planned on Render (not deployed yet). The start command is `npm start`. Set `NODE_ENV=production`, `SESSION_SECRET`,
+Live on Render: **https://brewshift.onrender.com** (health check: `/api/health`). Build command `npm install`, start command `npm start`. Set `NODE_ENV=production`, `SESSION_SECRET`,
 and the `OWNER_*` variables in the Render dashboard. Check that files in `data/` survive a restart
 (see requirement A-5).
