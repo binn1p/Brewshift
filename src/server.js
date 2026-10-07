@@ -34,6 +34,7 @@ seedMenuIfMissing()
   password: process.env.OWNER_PASSWORD,
   pin: process.env.OWNER_PIN,
   name: process.env.OWNER_NAME,
+  reset: process.env.RESET_OWNER === "yes",
 }))
   .then(() => {
     createApp(shop).listen(PORT, () => {

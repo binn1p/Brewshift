@@ -43,11 +43,23 @@ async function pinIsTaken(users, pin, exceptId) {
 }
 
 // Creates the owner from environment variables at startup (FR-25), if not there yet.
-async function ensureOwner({ email, password, pin, name }) {
+// With reset = true (RESET_OWNER=yes on Render), an existing owner with this email gets the
+// new PIN and password from the environment. Remove RESET_OWNER again after signing in.
+async function ensureOwner({ email, password, pin, name, reset = false }) {
   if (!email || !password || !pin) return;
   await exclusive(async () => {
     const users = await readUsers();
-    if (findByEmail(users, email.toLowerCase())) return;
+    const existing = findByEmail(users, email.toLowerCase());
+    if (existing && !reset) return;
+    if (existing) {
+      existing.passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      existing.pinHash = await bcrypt.hash(pin, SALT_ROUNDS);
+      existing.role = "owner";
+      existing.status = "approved";
+      if (name) existing.name = name;
+      await writeJson("users", users);
+      return;
+    }
     users.push({
       id: `u_${crypto.randomBytes(4).toString("hex")}`,
       name: name || "Owner",
