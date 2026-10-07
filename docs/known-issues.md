@@ -9,9 +9,8 @@
    - Likely fix: show the seasonal tag on the menu page from the Settings choice (`home.seasonalDrink`), instead of the drink's own label.
 
 
-2. **Egg Coffee still has the "Fall special" label on the live site.**
-   - The seasonal tile, photo and product page already point at Egg Coffee, and the menu shows the "Seasonal" label from Settings.
-   - The old "Fall special" label is still stored on the server, so it still shows. It was removed from the starting menu in the code, but the live data keeps it.
-   - Fix: in Menu admin, open Egg Coffee, clear the label, and save. Check the customer menu after that.
-
 ## Fixed
+
+- Seasonal label on the menu follows the Settings choice (commit 4d10e9e).
+- Egg Coffee's old "Fall special" label is removed automatically on the next start (one-time fix in `src/lib/menu.js`). Pending code commit.
+
