@@ -35,7 +35,6 @@ const STRINGS = {
   // Home
   "home.menu.text": { en: "7 Vietnamese coffees, brewed slow with a phin.", fr: "7 cafés vietnamiens, infusés lentement au phin." },
   "home.menu.cta": { en: "Open the menu →", fr: "Voir le menu →" },
-  "home.seasonal.label": { en: "Fall special", fr: "Spécial d'automne" },
   "home.seasonal.title": { en: "Egg Coffee", fr: "Café aux œufs" },
   "home.seasonal.text": { en: "Cà phê trứng: coffee under whipped egg-yolk and condensed-milk cream, Hanoi style.", fr: "Cà phê trứng : un café sous une crème fouettée de jaune d'œuf et de lait concentré, à la façon de Hanoï." },
   "home.seasonal.cta": { en: "$8 · Discover →", fr: "8 $ · Découvrir →" },
